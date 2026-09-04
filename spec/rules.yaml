@@ -1,30 +1,49 @@
-spec_version: '0.1'
+spec_version: '0.3'
 component: rules
 project: lewis-strict-implication-prover
-status: draft_m0
+status: candidate_m0
 scope:
   theorem_mode_only: true
   assumptions_supported_in_m0: false
   note: The initial prover establishes theorems of S1-S5. Premise consequence may be added later as a separate layer.
 primitive_rules:
   Sa:
-    name: Substitution
+    project_label: Sa
+    name: Uniform Substitution
     kind: uniform_substitution
     premise_count: 1
-    premise_requirement: certified theorem or postulate schema
-    conclusion: uniform substitution instance of the premise
-    certificate:
+    premises:
+    - one already-certified theorem formula
+    conclusion: simultaneous one-pass object-atom substitution instance of the parent theorem
+    certificate_contract:
+      justification_kind: Sa
       required_fields:
-      - source
-      - substitution
-      substitution_format:
-        key: object propositional variable
-        value: formula AST
-      constraints:
-      - Every occurrence of a substituted variable is replaced uniformly.
-      - Simultaneous substitution is capture-free; the M0 language has no binders.
-    renderer_example: Sa[p := ◇q]
-    project_label: Sa
+      - kind
+      - parents
+      - atom_substitution
+      forbidden_fields:
+      - schema_id
+      - schema_substitution
+      - occurrence_path
+      - direction
+      - definition_id
+      parents:
+        length: 1
+        order:
+        - source_theorem
+      atom_substitution:
+        key_namespace: object atom names only
+        value: object formula AST containing no schema metavariables
+        domain: non-empty subset of atom names occurring in the parent formula
+        unmentioned_atoms: fixed
+        application: simultaneous, one-pass, nonrecursive into replacement values
+        extra_keys_not_in_parent: reject
+    constraints:
+    - Sa never substitutes schema metavariables; those belong only to postulate_instance.
+    - All substituted occurrences of an object atom are replaced uniformly.
+    - The parent must already be accepted; M0 theorem mode has no open assumptions.
+    - No implicit definition conversion is performed while checking Sa.
+    renderer_example: Sa 12 [p := ◇q]
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -34,29 +53,43 @@ primitive_rules:
       project_label_note: Sa is the project's editorial label, not a symbolic rule label printed by L&L.
       feys_crosscheck: Feys 30.21
   Sb:
-    name: Substitution of Equivalents
+    project_label: Sb
+    name: Substitution of Strict Equivalents
     kind: replacement_of_strict_equivalents
     premise_count: 2
     premises:
-      equivalence: a certified theorem of the form A equiv_s B
-      target: a certified theorem containing the selected occurrence of A or B
-    conclusion: the target theorem after replacing the selected occurrence by its strict equivalent
-    certificate:
+    - 'equivalence parent: exact surface root equiv_s(A,B)'
+    - 'target parent: one already-certified theorem containing the selected source-side occurrence'
+    conclusion: target theorem with exactly one selected occurrence replaced in the declared direction
+    certificate_contract:
+      justification_kind: Sb
       required_fields:
-      - equivalence_line
-      - target_line
+      - kind
+      - parents
       - direction
       - occurrence_path
+      forbidden_fields:
+      - schema_id
+      - schema_substitution
+      - atom_substitution
+      - definition_id
+      parents:
+        length: 2
+        order:
+        - equivalence_parent
+        - target_parent
       direction_values:
       - left_to_right
       - right_to_left
-      occurrence_path: structural path in the surface formula AST; paths are checked, not trusted
+      occurrence_path: uses the single normative occurrence_path_grammar below
     constraints:
-    - The equality sign '=' is never used as the premise relation; the premise connective is object-language equiv_s.
-    - Replacement may occur inside any object-language formula context represented by the AST.
-    - The target must already be a theorem; Sb is not a free congruence rule over arbitrary unproved formulas.
-    renderer_example: Sb[eq 12, line 19, L→R, path=.right.arg]
-    project_label: Sb
+    - The equivalence parent must have exact visible/surface root equiv_s; metalanguage equality and equal full
+      erasures do not qualify.
+    - The selected target occurrence must be structurally identical to the source side of the chosen direction.
+    - Exactly one occurrence is replaced per Sb node; multiple replacements require multiple checked nodes.
+    - Root replacement at occurrence_path [] is permitted.
+    - No implicit definition conversion is performed while checking Sb.
+    renderer_example: Sb eq=12 target=19 L→R path=.right.arg
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -66,24 +99,35 @@ primitive_rules:
       project_label_note: Sb is the project's editorial label, not a symbolic rule label printed by L&L.
       feys_crosscheck: Feys 30.24
   Ad:
+    project_label: Ad
     name: Adjunction
     kind: adjunction
     premise_count: 2
     premises:
-      left: certified theorem A
-      right: certified theorem B
-    conclusion:
-      op: and
-      left:
-        premise: left
-      right:
-        premise: right
-    certificate:
+    - left parent theorem A
+    - right parent theorem B
+    conclusion: and(A,B) in that order
+    certificate_contract:
+      justification_kind: Ad
       required_fields:
-      - left_line
-      - right_line
-    renderer_example: Ad[7, 11]
-    project_label: Ad
+      - kind
+      - parents
+      forbidden_fields:
+      - schema_id
+      - schema_substitution
+      - atom_substitution
+      - direction
+      - occurrence_path
+      - definition_id
+      parents:
+        length: 2
+        order:
+        - left_parent
+        - right_parent
+    constraints:
+    - No hidden commutativity or reassociation is allowed.
+    - No implicit definition conversion is performed while checking Ad.
+    renderer_example: Ad 7,11
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -92,22 +136,40 @@ primitive_rules:
       project_label_note: Ad is the project's editorial label.
       feys_crosscheck: Feys 30.22
   Smp:
-    name: Strict Modus Ponens
+    project_label: Smp
+    name: Inference / Strict Detachment
     aliases:
     - Inference
     - strict detachment
     kind: strict_detachment
     premise_count: 2
     premises:
-      antecedent: certified theorem A
-      implication: certified theorem A strict_imp B
+    - antecedent parent theorem A
+    - implication parent theorem strict_imp(A,B)
     conclusion: B
-    certificate:
+    certificate_contract:
+      justification_kind: Smp
       required_fields:
-      - antecedent_line
-      - implication_line
-    renderer_example: Smp[5, 9]
-    project_label: Smp
+      - kind
+      - parents
+      forbidden_fields:
+      - schema_id
+      - schema_substitution
+      - atom_substitution
+      - direction
+      - occurrence_path
+      - definition_id
+      parents:
+        length: 2
+        order:
+        - antecedent_parent
+        - implication_parent
+    constraints:
+    - The implication parent must have exact visible/surface root strict_imp.
+    - The implication antecedent must be structurally identical to the antecedent parent conclusion.
+    - No implicit definition conversion is performed while checking Smp.
+    - B7 is an object-language postulate schema and is not this metalevel operation.
+    renderer_example: Smp 5,9
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -117,28 +179,84 @@ primitive_rules:
       feys_crosscheck: Feys 30.23
 kernel_certificate_kinds:
   postulate_instance:
-    primitive_status: kernel entry form for an instance of a registered postulate schema
+    trusted_kind: true
+    is_lewis_inference_rule: false
+    purpose: Parentless kernel entry for one instance of a registered primitive postulate schema.
     required_fields:
+    - kind
     - schema_id
-    - substitution
+    - schema_substitution
+    forbidden_fields:
+    - parents
+    - atom_substitution
+    - direction
+    - occurrence_path
+    - definition_id
+    schema_substitution:
+      key_namespace: schema metavariables occurring in the registered schema AST
+      domain: exactly the set of metavariables occurring in that schema; no missing or extra keys
+      value: object formula AST containing no schema metavariables
+      application: single simultaneous metavariable instantiation
     check:
-    - Look up schema_id in schemas.yaml.
-    - Apply the recorded uniform substitution to schema metavariables.
-    - Require exact AST identity with the certified conclusion.
-    historical_rendering: Render as the schema label, optionally followed by Sa[...] when the instance is non-trivial.
-  rule_application:
+    - schema_id is primitive in the proof's selected basis_id
+    - instantiate the registered schema with exactly the recorded schema_substitution
+    - require exact surface-AST identity with the node conclusion
+    historical_rendering: Render as the schema label. If a historical exposition wants a literal postulate followed
+      by Sa, it must provide an actual checked Sa node; direct postulate instantiation is never cosmetically relabelled
+      as Sa.
+  Sa:
+    trusted_kind: true
+    is_lewis_inference_rule: true
+    contract: primitive_rules.Sa.certificate_contract
+  Sb:
+    trusted_kind: true
+    is_lewis_inference_rule: true
+    contract: primitive_rules.Sb.certificate_contract
+  Ad:
+    trusted_kind: true
+    is_lewis_inference_rule: true
+    contract: primitive_rules.Ad.certificate_contract
+  Smp:
+    trusted_kind: true
+    is_lewis_inference_rule: true
+    contract: primitive_rules.Smp.certificate_contract
+  definition_conversion:
+    trusted_kind: true
+    is_lewis_inference_rule: false
+    purpose: Checked metalinguistic use of one registered definition at exactly one surface occurrence.
     required_fields:
-    - rule_id
-    - premises
-    - payload
-    check: Dispatch only to one of Sa, Sb, Ad, Smp in M0/M1.
+    - kind
+    - parents
+    - definition_id
+    - direction
+    - occurrence_path
+    forbidden_fields:
+    - schema_id
+    - schema_substitution
+    - atom_substitution
+    parents:
+      length: 1
+      order:
+      - source_parent
+    direction_values:
+    - expand
+    - contract
+    check:
+    - definition_id resolves to exactly one registered metadefinition in language.yaml
+    - traverse the source parent's surface AST by occurrence_path
+    - for expand, match the selected occurrence against the definition LHS; for contract, match against the RHS
+    - use one consistent metavariable environment, including repeated metavariables
+    - instantiate the opposite side with that same environment
+    - replace exactly the selected occurrence and require exact surface-AST identity with the node conclusion
+    - perform no second implicit definition conversion
+    renderer: Df <historical definition number or definition_id>
 non_rules:
   definition_expansion:
     is_inference_rule: false
-    treatment: parser/elaborator normalization governed by language.yaml
+    treatment: Only through kernel certificate kind definition_conversion with direction=expand.
   definition_contraction:
     is_inference_rule: false
-    treatment: pretty-print/surface reconstruction governed by language.yaml
+    treatment: Only through kernel certificate kind definition_conversion with direction=contract.
   theorem_library_lookup:
     is_inference_rule: false
     treatment: Allowed only as a macro whose stored proof DAG expands to primitive certificates accepted by the
@@ -165,5 +283,52 @@ explicitly_forbidden_rules:
   natural_deduction_rule:
     enabled: false
 trusted_kernel_invariant:
-  statement: Every accepted theorem certificate reduces to registered postulate instances plus Sa, Sb, Ad, and Smp,
-    with notation elaboration treated only at the meta-level.
+  statement: Every accepted theorem certificate consists only of parentless postulate_instance nodes, the four Lewis
+    operations Sa/Sb/Ad/Smp, and explicit checked definition_conversion nodes. Definition conversion is trusted
+    metalinguistic certificate checking, not a fifth Lewis inference rule. All Lewis rule matching uses exact surface-AST
+    structure.
+occurrence_path_grammar:
+  serialization: YAML/JSON list of field-name strings
+  root: []
+  legal_segments:
+  - arg
+  - left
+  - right
+  traversal: Starting at the surface formula root, each segment must name an actual formula-valued child field of
+    the current AST node. The atom payload field 'name' is never traversable.
+  defined_surface_nodes: or, strict_imp, and equiv_s are traversed as visible surface nodes; definitions are not
+    expanded during path traversal.
+  examples:
+  - path: []
+    meaning: root occurrence
+  - path:
+    - arg
+    meaning: child of neg or poss
+  - path:
+    - right
+    - arg
+    meaning: right child followed by unary arg
+  reject:
+  - non-list paths
+  - integer indices
+  - dotted strings in logical serialization
+  - unknown field names
+  - paths through atom.name
+  - paths that leave the formula tree
+  human_rendering: A dotted form such as .right.arg is renderer-only and is never the normative certificate payload.
+proof_node_grammar:
+  node_fields:
+  - conclusion
+  - justification
+  no_extra_node_fields: true
+  justification_dispatch: justification.kind must be exactly one key of kernel_certificate_kinds
+  parent_reference_field: parents
+  parent_reference_policy: All parent references use only the ordered parents list. Logical serialization never
+    uses *_line fields; line numbers are assigned only after deterministic DAG linearization.
+dag_invariants:
+- Node identifiers are unique.
+- Every referenced parent and the root node exist.
+- The dependency graph is acyclic.
+- Every node is reachable from the declared root; unreachable certificate nodes are rejected.
+- Proof-formula ASTs contain object atoms but never schema metavariable nodes.
+- The root conclusion is structurally identical to the declared goal.

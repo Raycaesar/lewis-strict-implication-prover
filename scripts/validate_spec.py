@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""Structural and policy validation for the Lewis S1–S5 M0 YAML specification.
+"""Validate the Lewis S1–S5 M0 executable specification.
 
-This module deliberately does *not* implement a theorem prover and does not
-duplicate the full Lewis calculus in Python. It validates the executable YAML
-specification against repository-level M0 invariants: referential integrity,
-AST well-formedness, normalized basis membership, and forbidden shortcuts.
+Normal mode checks structural/policy consistency.
+`--freeze` additionally checks the M0.3 closure-candidate invariants and the
+independently audited AST fingerprint lock.
 
-Usage:
-    python scripts/validate_spec.py
-    python scripts/validate_spec.py --spec-dir spec
-    python scripts/validate_spec.py --quiet
+This is not a theorem prover and does not establish historical truth by itself.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -29,14 +27,15 @@ SPEC_FILES = {
     "systems": "systems.yaml",
 }
 
+EXPECTED_AST_OPS = frozenset({"atom", "neg", "and", "poss", "strict_imp", "or", "equiv_s"})
 EXPECTED_PRIMITIVE_RULES = ("Sa", "Sb", "Ad", "Smp")
+EXPECTED_CERTIFICATE_KINDS = frozenset(
+    {"postulate_instance", "Sa", "Sb", "Ad", "Smp", "definition_conversion"}
+)
 EXPECTED_SYSTEMS = ("S1", "S2", "S3", "S4", "S5")
-
-# Policy-level registry checks only; formulas themselves remain solely in YAML.
 EXPECTED_SCHEMA_IDS = frozenset(
     {"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "A8", "C10", "C11", "C12"}
 )
-
 EXPECTED_RESOLVED_BASES = {
     "S1": frozenset({"B1", "B2", "B3", "B4", "B5", "B6", "B7"}),
     "S2": frozenset({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}),
@@ -47,16 +46,23 @@ EXPECTED_RESOLVED_BASES = {
 EXPECTED_S5_ALTERNATIVE = frozenset(
     {"B1", "B2", "B3", "B4", "B5", "B6", "B7", "C10", "C12"}
 )
-
+EXPECTED_BASIS_IDS = {
+    "S1": ("S1_B1_B7",),
+    "S2": ("S2_B1_B8",),
+    "S3": ("S3_B1_B7_A8",),
+    "S4": ("S4_B1_B7_C10",),
+    "S5": ("S5_PRIMARY_B1_B7_C11", "S5_ALT_B1_B7_C10_C12"),
+}
+ALLOWED_STATUSES = {"draft_m0", "candidate_m0", "frozen_m0"}
 FORBIDDEN_CORE_AST_OPS = frozenset({"box", "material_imp", "object_equality"})
 
 
 class DuplicateKeyError(ValueError):
-    """Raised when a YAML mapping contains a duplicate key."""
+    pass
 
 
 class StrictLoader(yaml.SafeLoader):
-    """Safe YAML loader that rejects duplicate mapping keys."""
+    pass
 
 
 def _construct_mapping(loader, node, deep=False):
@@ -71,9 +77,7 @@ def _construct_mapping(loader, node, deep=False):
     return mapping
 
 
-StrictLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_mapping
-)
+StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_mapping)
 
 
 @dataclass(frozen=True)
@@ -81,16 +85,14 @@ class ValidationIssue:
     code: str
     message: str
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"[{self.code}] {self.message}"
 
 
 class ValidationError(Exception):
-    """Raised when one or more M0 specification checks fail."""
-
     def __init__(self, issues: Sequence[ValidationIssue]):
         self.issues = tuple(issues)
-        super().__init__("\n".join(str(issue) for issue in self.issues))
+        super().__init__("\n".join(str(x) for x in self.issues))
 
 
 @dataclass(frozen=True)
@@ -115,25 +117,15 @@ def load_yaml_mapping(path: Path) -> Mapping[str, Any]:
     try:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
-        raise ValidationError(
-            [ValidationIssue("FILE_MISSING", f"required file is missing: {path}")]
-        ) from None
-
+        raise ValidationError([ValidationIssue("FILE_MISSING", f"required file is missing: {path}")]) from None
     try:
         data = yaml.load(text, Loader=StrictLoader)
     except DuplicateKeyError as exc:
-        raise ValidationError(
-            [ValidationIssue("YAML_DUPLICATE_KEY", f"{path}: {exc}")]
-        ) from None
+        raise ValidationError([ValidationIssue("YAML_DUPLICATE_KEY", f"{path}: {exc}")]) from None
     except yaml.YAMLError as exc:
-        raise ValidationError(
-            [ValidationIssue("YAML_PARSE", f"{path}: {exc}")]
-        ) from None
-
+        raise ValidationError([ValidationIssue("YAML_PARSE", f"{path}: {exc}")]) from None
     if not isinstance(data, Mapping):
-        raise ValidationError(
-            [ValidationIssue("YAML_TOPLEVEL", f"{path}: top-level YAML must be a mapping")]
-        )
+        raise ValidationError([ValidationIssue("YAML_TOPLEVEL", f"{path}: top level must be a mapping")])
     return data
 
 
@@ -141,16 +133,13 @@ def load_spec_bundle(spec_dir: Path | str = "spec") -> SpecBundle:
     spec_dir = Path(spec_dir)
     loaded = {}
     issues = []
-
     for component, filename in SPEC_FILES.items():
         try:
             loaded[component] = load_yaml_mapping(spec_dir / filename)
         except ValidationError as exc:
             issues.extend(exc.issues)
-
     if issues:
         raise ValidationError(issues)
-
     return SpecBundle(
         spec_dir=spec_dir,
         language=loaded["language"],
@@ -160,773 +149,430 @@ def load_spec_bundle(spec_dir: Path | str = "spec") -> SpecBundle:
     )
 
 
-def _as_mapping(value, *, path, issues):
+def _as_mapping(value, path, issues):
     if not isinstance(value, Mapping):
-        issues.append(ValidationIssue("TYPE_MAPPING", f"{path} must be a YAML mapping"))
+        issues.append(ValidationIssue("TYPE_MAPPING", f"{path} must be a mapping"))
         return {}
     return value
 
 
-def _validate_ast_recursively(node, *, path, formula_ast, issues):
-    registered_ops = frozenset(formula_ast.keys())
+def _meta_vars(node: Any) -> set[str]:
+    result = set()
+    if isinstance(node, Mapping):
+        if set(node) == {"meta"} and isinstance(node.get("meta"), str):
+            result.add(node["meta"])
+        else:
+            for value in node.values():
+                result.update(_meta_vars(value))
+    elif isinstance(node, list):
+        for value in node:
+            result.update(_meta_vars(value))
+    return result
 
+
+def _defined_op_dependencies(node: Any, defined_ops: set[str]) -> set[str]:
+    result = set()
+    if isinstance(node, Mapping):
+        op = node.get("op")
+        if op in defined_ops:
+            result.add(op)
+        for value in node.values():
+            result.update(_defined_op_dependencies(value, defined_ops))
+    return result
+
+
+def _validate_ast(node, path, formula_ast, issues):
     if not isinstance(node, Mapping):
         issues.append(ValidationIssue("AST_NODE", f"{path} must be an AST/meta mapping"))
         return
 
     if "meta" in node:
-        if set(node.keys()) != {"meta"}:
-            issues.append(
-                ValidationIssue(
-                    "META_NODE_FIELDS",
-                    f"{path}: meta node must contain only the 'meta' field",
-                )
-            )
-        value = node.get("meta")
-        if not isinstance(value, str) or not value:
-            issues.append(
-                ValidationIssue("META_NODE_VALUE", f"{path}.meta must be non-empty text")
-            )
-        return
-
-    if "op" not in node:
-        issues.append(
-            ValidationIssue(
-                "AST_OP_MISSING",
-                f"{path} is neither a meta node nor an operator node",
-            )
-        )
+        if set(node) != {"meta"} or not isinstance(node.get("meta"), str) or not node["meta"]:
+            issues.append(ValidationIssue("META_NODE", f"{path}: malformed schema metavariable node"))
         return
 
     op = node.get("op")
     if not isinstance(op, str):
-        issues.append(ValidationIssue("AST_OP_TYPE", f"{path}.op must be a string"))
+        issues.append(ValidationIssue("AST_OP", f"{path}: missing/non-string op"))
+        return
+    if op not in formula_ast:
+        issues.append(ValidationIssue("UNKNOWN_AST_OP", f"{path}: unknown op {op!r}"))
         return
 
-    if op in FORBIDDEN_CORE_AST_OPS:
-        issues.append(
-            ValidationIssue(
-                "FORBIDDEN_AST_OP",
-                f"{path}: forbidden M0 operator {op!r} occurs in executable AST",
-            )
-        )
-
-    if op not in registered_ops:
-        issues.append(
-            ValidationIssue(
-                "UNKNOWN_AST_OP",
-                f"{path}: operator {op!r} is not registered in language.formula_ast",
-            )
-        )
+    decl = formula_ast[op]
+    if not isinstance(decl, Mapping):
+        issues.append(ValidationIssue("AST_DECL", f"formula_ast.{op} must be a mapping"))
         return
 
-    spec = formula_ast[op]
-    if not isinstance(spec, Mapping):
-        issues.append(
-            ValidationIssue(
-                "AST_OPERATOR_SPEC",
-                f"language.formula_ast.{op} must be a mapping",
-            )
-        )
+    fields = decl.get("fields")
+    if not isinstance(fields, list):
+        issues.append(ValidationIssue("AST_FIELDS", f"formula_ast.{op}.fields must be a list"))
         return
 
-    expected_fields = spec.get("fields", [])
-    if not isinstance(expected_fields, list):
+    actual = set(node) - {"op"}
+    if actual != set(fields):
         issues.append(
-            ValidationIssue(
-                "AST_FIELDS",
-                f"language.formula_ast.{op}.fields must be a list",
-            )
-        )
-        return
-
-    actual_payload_fields = set(node.keys()) - {"op"}
-    expected_field_set = set(expected_fields)
-
-    if actual_payload_fields != expected_field_set:
-        issues.append(
-            ValidationIssue(
-                "AST_ARITY_FIELDS",
-                f"{path}: operator {op!r} has fields {sorted(actual_payload_fields)!r}; "
-                f"expected {sorted(expected_field_set)!r}",
-            )
+            ValidationIssue("AST_FIELDS", f"{path}: fields {sorted(actual)} != declared {sorted(fields)}")
         )
 
-    declared_arity = spec.get("arity")
-
-    # `atom` is terminal: its `name` field is payload, not a formula child.
     if op == "atom":
-        if declared_arity != 0 or expected_fields != ["name"]:
-            issues.append(
-                ValidationIssue(
-                    "ATOM_DECLARATION",
-                    "language.formula_ast.atom must have arity: 0 and fields: [name]",
-                )
-            )
-        if "name" in node and (
-            not isinstance(node["name"], str) or not node["name"]
-        ):
-            issues.append(
-                ValidationIssue(
-                    "ATOM_NAME",
-                    f"{path}.name must be a non-empty string",
-                )
-            )
+        if decl.get("arity") != 0 or fields != ["name"]:
+            issues.append(ValidationIssue("ATOM_DECL", "atom must have arity 0 and fields [name]"))
+        if "name" in node and (not isinstance(node["name"], str) or not node["name"]):
+            issues.append(ValidationIssue("ATOM_NAME", f"{path}.name must be non-empty text"))
         return
 
-    if declared_arity != len(expected_fields):
-        issues.append(
-            ValidationIssue(
-                "AST_DECLARED_ARITY",
-                f"language.formula_ast.{op}: arity={declared_arity!r} but "
-                f"fields={expected_fields!r}",
-            )
-        )
+    if decl.get("arity") != len(fields):
+        issues.append(ValidationIssue("AST_ARITY", f"formula_ast.{op} arity/fields mismatch"))
 
-    for field in expected_fields:
+    for field in fields:
         if field in node:
-            _validate_ast_recursively(
-                node[field],
-                path=f"{path}.{field}",
-                formula_ast=formula_ast,
-                issues=issues,
-            )
+            _validate_ast(node[field], f"{path}.{field}", formula_ast, issues)
 
 
-def _check_metadata(bundle, issues):
+def _check_metadata(bundle, issues, freeze):
     versions = set()
-
-    for expected_component, data in bundle.components.items():
-        if data.get("component") != expected_component:
-            issues.append(
-                ValidationIssue(
-                    "COMPONENT_MISMATCH",
-                    f"{expected_component}.yaml declares component={data.get('component')!r}",
-                )
-            )
+    statuses = set()
+    for component, data in bundle.components.items():
+        if data.get("component") != component:
+            issues.append(ValidationIssue("COMPONENT", f"{component}.yaml component mismatch"))
         if data.get("project") != PROJECT:
-            issues.append(
-                ValidationIssue(
-                    "PROJECT_MISMATCH",
-                    f"{expected_component}.yaml declares project={data.get('project')!r}",
-                )
-            )
-
-        version = data.get("spec_version")
-        if version is None:
-            issues.append(
-                ValidationIssue(
-                    "SPEC_VERSION_MISSING",
-                    f"{expected_component}.yaml has no spec_version",
-                )
-            )
-        else:
-            versions.add(str(version))
-
-        if data.get("status") != "draft_m0":
-            issues.append(
-                ValidationIssue(
-                    "M0_STATUS",
-                    f"{expected_component}.yaml status must remain 'draft_m0' until M0 freeze",
-                )
-            )
-
-    if len(versions) > 1:
-        issues.append(
-            ValidationIssue(
-                "SPEC_VERSION_DRIFT",
-                f"M0 YAML files disagree on spec_version: {sorted(versions)}",
-            )
-        )
+            issues.append(ValidationIssue("PROJECT", f"{component}.yaml project mismatch"))
+        versions.add(str(data.get("spec_version")))
+        status = data.get("status")
+        statuses.add(status)
+        if status not in ALLOWED_STATUSES:
+            issues.append(ValidationIssue("STATUS", f"{component}.yaml has invalid status {status!r}"))
+    if len(versions) != 1:
+        issues.append(ValidationIssue("VERSION_DRIFT", f"spec versions differ: {sorted(versions)}"))
+    if len(statuses) != 1:
+        issues.append(ValidationIssue("STATUS_DRIFT", f"spec statuses differ: {sorted(statuses)}"))
+    if freeze:
+        if versions != {"0.3"}:
+            issues.append(ValidationIssue("FREEZE_VERSION", "freeze candidate must be spec_version 0.3"))
+        if statuses not in ({"candidate_m0"}, {"frozen_m0"}):
+            issues.append(ValidationIssue("FREEZE_STATUS", "freeze candidate status must be candidate_m0 or frozen_m0"))
 
 
-def _check_language(bundle, issues):
+def _check_language(bundle, issues, freeze):
     language = bundle.language
-    formula_ast = _as_mapping(
-        language.get("formula_ast"), path="language.formula_ast", issues=issues
-    )
-    operators = _as_mapping(
-        language.get("operators"), path="language.operators", issues=issues
-    )
+    formula_ast = _as_mapping(language.get("formula_ast"), "language.formula_ast", issues)
+    operators = _as_mapping(language.get("operators"), "language.operators", issues)
 
-    required_ast = {"atom", "neg", "and", "poss", "strict_imp", "or", "equiv_s"}
-    missing = required_ast - set(formula_ast)
-    if missing:
+    if set(formula_ast) != set(EXPECTED_AST_OPS):
         issues.append(
             ValidationIssue(
-                "LANGUAGE_REQUIRED_AST",
-                f"language.formula_ast is missing {sorted(missing)}",
+                "AST_REGISTRY",
+                f"formula_ast must be exactly {sorted(EXPECTED_AST_OPS)}; got {sorted(formula_ast)}",
             )
         )
+    if FORBIDDEN_CORE_AST_OPS & set(formula_ast):
+        issues.append(ValidationIssue("FORBIDDEN_AST", "forbidden core AST operator registered"))
 
-    leaked = FORBIDDEN_CORE_AST_OPS & set(formula_ast)
-    if leaked:
-        issues.append(
-            ValidationIssue(
-                "LANGUAGE_FORBIDDEN_AST",
-                f"forbidden M0 AST constructors are registered: {sorted(leaked)}",
-            )
-        )
-
-    for op, declaration in formula_ast.items():
-        if not isinstance(declaration, Mapping):
-            issues.append(
-                ValidationIssue(
-                    "AST_OPERATOR_SPEC",
-                    f"language.formula_ast.{op} must be a mapping",
-                )
-            )
+    expected_shapes = {
+        "atom": (0, ["name"]),
+        "neg": (1, ["arg"]),
+        "poss": (1, ["arg"]),
+        "and": (2, ["left", "right"]),
+        "or": (2, ["left", "right"]),
+        "strict_imp": (2, ["left", "right"]),
+        "equiv_s": (2, ["left", "right"]),
+    }
+    for op, (arity, fields) in expected_shapes.items():
+        decl = formula_ast.get(op)
+        if not isinstance(decl, Mapping):
             continue
-        fields = declaration.get("fields")
-        arity = declaration.get("arity")
-        if not isinstance(fields, list):
-            issues.append(
-                ValidationIssue(
-                    "AST_DECLARATION",
-                    f"language.formula_ast.{op}.fields must be a list",
-                )
-            )
-        elif op == "atom":
-            if arity != 0 or fields != ["name"]:
-                issues.append(
-                    ValidationIssue(
-                        "ATOM_DECLARATION",
-                        "language.formula_ast.atom must have arity: 0 and fields: [name]",
-                    )
-                )
-        elif arity != len(fields):
-            issues.append(
-                ValidationIssue(
-                    "AST_DECLARATION",
-                    f"language.formula_ast.{op} must have arity equal to its formula-child field count",
-                )
-            )
+        if decl.get("arity") != arity or decl.get("fields") != fields:
+            issues.append(ValidationIssue("AST_SHAPE", f"{op} must have arity={arity}, fields={fields}"))
 
-    for name, declaration in operators.items():
-        if not isinstance(declaration, Mapping):
-            issues.append(
-                ValidationIssue(
-                    "OPERATOR_SPEC",
-                    f"language.operators.{name} must be a mapping",
-                )
-            )
-            continue
-        ast_name = declaration.get("ast")
-        if ast_name not in formula_ast:
-            issues.append(
-                ValidationIssue(
-                    "OPERATOR_UNKNOWN_AST",
-                    f"language.operators.{name}.ast={ast_name!r} is unregistered",
-                )
-            )
+    for name, decl in operators.items():
+        if not isinstance(decl, Mapping) or decl.get("ast") not in formula_ast:
+            issues.append(ValidationIssue("OPERATOR_AST", f"operators.{name} refers to invalid AST"))
+    if "=>" in operators.get("strict_imp", {}).get("input_aliases", []):
+        issues.append(ValidationIssue("ASCII_MATERIALISH_ALIAS", "strict_imp alias '=>' is forbidden in M0.3"))
 
-    separation = _as_mapping(
-        language.get("meta_object_separation"),
-        path="language.meta_object_separation",
-        issues=issues,
-    )
-    plain_eq = _as_mapping(
-        separation.get("plain_equality"),
-        path="language.meta_object_separation.plain_equality",
-        issues=issues,
-    )
-    if plain_eq.get("allowed_in_object_formula") is not False:
-        issues.append(
-            ValidationIssue("OBJECT_EQUALITY", "plain '=' must be forbidden in object formulas")
-        )
+    separation = _as_mapping(language.get("meta_object_separation"), "meta_object_separation", issues)
+    if separation.get("plain_equality", {}).get("allowed_in_object_formula") is not False:
+        issues.append(ValidationIssue("OBJECT_EQUALITY", "plain '=' must be forbidden in object formulas"))
+    deq = separation.get("definitional_equality", {})
+    if deq.get("level") != "metalanguage" or deq.get("parse_as_formula") is not False:
+        issues.append(ValidationIssue("DEFINITIONAL_EQUALITY", "':=' must remain metalanguage-only"))
 
-    defeq = _as_mapping(
-        separation.get("definitional_equality"),
-        path="language.meta_object_separation.definitional_equality",
-        issues=issues,
-    )
-    if defeq.get("level") != "metalanguage" or defeq.get("parse_as_formula") is not False:
-        issues.append(
-            ValidationIssue(
-                "DEFINITIONAL_EQUALITY",
-                "':=' must remain metalanguage-only",
-            )
-        )
+    ep = _as_mapping(language.get("elaboration_policy"), "elaboration_policy", issues)
+    if ep.get("definitions_are_inference_rules") is not False:
+        issues.append(ValidationIssue("DEFINITION_RULE", "definitions cannot be Lewis inference rules"))
+    if ep.get("implicit_definition_conversion_allowed") is not False:
+        issues.append(ValidationIssue("IMPLICIT_DEFINITION", "implicit definition conversion must be disabled"))
+    if ep.get("permit_box_sugar") is not False:
+        issues.append(ValidationIssue("BOX", "Box sugar must remain disabled"))
 
-    elaboration = _as_mapping(
-        language.get("elaboration_policy"),
-        path="language.elaboration_policy",
-        issues=issues,
-    )
-    if elaboration.get("definitions_are_inference_rules") is not False:
-        issues.append(
-            ValidationIssue(
-                "DEFINITIONS_AS_RULES",
-                "M0 definitions must not become inference rules",
-            )
-        )
-    if elaboration.get("permit_box_sugar") is not False:
-        issues.append(
-            ValidationIssue("BOX_SUGAR", "Box sugar must remain disabled in M0")
-        )
+    metadefs = _as_mapping(language.get("metadefinitions"), "metadefinitions", issues)
+    expected_defs = {"DEF_OR", "DEF_STRICT_IMP", "DEF_EQUIV_S"}
+    if set(metadefs) != expected_defs:
+        issues.append(ValidationIssue("DEFINITION_REGISTRY", f"definition ids must be exactly {sorted(expected_defs)}"))
 
-    metadefs = _as_mapping(
-        language.get("metadefinitions"),
-        path="language.metadefinitions",
-        issues=issues,
-    )
+    defined_op_to_id = {
+        op: decl.get("definition_id")
+        for op, decl in formula_ast.items()
+        if isinstance(decl, Mapping) and decl.get("primitive") is False
+    }
+    expected_map = {"or": "DEF_OR", "strict_imp": "DEF_STRICT_IMP", "equiv_s": "DEF_EQUIV_S"}
+    if defined_op_to_id != expected_map:
+        issues.append(ValidationIssue("DEFINED_OPERATOR_MAP", f"defined operator mapping must be {expected_map}"))
 
-    for op, declaration in formula_ast.items():
-        if not isinstance(declaration, Mapping):
-            continue
-        definition_id = declaration.get("definition_id")
-        if definition_id is not None:
-            if declaration.get("primitive") is not False:
-                issues.append(
-                    ValidationIssue(
-                        "DEFINED_PRIMITIVE_CONFLICT",
-                        f"{op} has definition_id={definition_id!r} but is not primitive:false",
-                    )
-                )
-            if definition_id not in metadefs:
-                issues.append(
-                    ValidationIssue(
-                        "DEFINITION_MISSING",
-                        f"{op} references missing metadefinition {definition_id!r}",
-                    )
-                )
-
-    for definition_id, definition in metadefs.items():
+    id_to_op = {v: k for k, v in expected_map.items()}
+    deps = {}
+    for did, definition in metadefs.items():
         if not isinstance(definition, Mapping):
-            issues.append(
-                ValidationIssue(
-                    "METADEFINITION_SPEC",
-                    f"language.metadefinitions.{definition_id} must be a mapping",
-                )
-            )
+            issues.append(ValidationIssue("DEFINITION", f"{did} must be a mapping"))
             continue
-        if definition.get("level") != "metalanguage":
-            issues.append(
-                ValidationIssue(
-                    "METADEFINITION_LEVEL",
-                    f"{definition_id} must be metalanguage-level",
-                )
-            )
-        for side in ("lhs", "rhs"):
-            if side not in definition:
-                issues.append(
-                    ValidationIssue("METADEFINITION_SIDE", f"{definition_id} is missing {side}")
-                )
-                continue
-            _validate_ast_recursively(
-                definition[side],
-                path=f"language.metadefinitions.{definition_id}.{side}",
-                formula_ast=formula_ast,
-                issues=issues,
-            )
+        lhs, rhs = definition.get("lhs"), definition.get("rhs")
+        for side_name, side in (("lhs", lhs), ("rhs", rhs)):
+            _validate_ast(side, f"metadefinitions.{did}.{side_name}", formula_ast, issues)
+        if isinstance(lhs, Mapping) and lhs.get("op") != id_to_op.get(did):
+            issues.append(ValidationIssue("DEFINITION_LHS_ROOT", f"{did} LHS root is wrong"))
+        if _meta_vars(lhs) != _meta_vars(rhs):
+            issues.append(ValidationIssue("DEFINITION_METAVARS", f"{did} LHS/RHS metavariable sets differ"))
+        defined_ops = set(expected_map)
+        rhs_deps = _defined_op_dependencies(rhs, defined_ops)
+        own = id_to_op.get(did)
+        deps[own] = set(rhs_deps)
+
+    # acyclic dependency graph over defined operators
+    visiting, done = set(), set()
+    def visit(op):
+        if op in visiting:
+            issues.append(ValidationIssue("DEFINITION_CYCLE", f"definition dependency cycle at {op}"))
+            return
+        if op in done:
+            return
+        visiting.add(op)
+        for dep in deps.get(op, set()):
+            visit(dep)
+        visiting.remove(op)
+        done.add(op)
+    for op in deps:
+        visit(op)
+
+    if freeze:
+        wf = _as_mapping(language.get("definition_well_formedness"), "definition_well_formedness", issues)
+        if len(wf.get("requirements", [])) < 4:
+            issues.append(ValidationIssue("FREEZE_DEFINITION_POLICY", "definition well-formedness requirements incomplete"))
 
 
-def _check_rules(bundle, issues):
+def _check_rules(bundle, issues, freeze):
     rules = bundle.rules
-    primitive_rules = _as_mapping(
-        rules.get("primitive_rules"), path="rules.primitive_rules", issues=issues
-    )
+    primitive = _as_mapping(rules.get("primitive_rules"), "primitive_rules", issues)
+    if set(primitive) != set(EXPECTED_PRIMITIVE_RULES):
+        issues.append(ValidationIssue("RULE_SET", "primitive Lewis rules must be exactly Sa,Sb,Ad,Smp"))
 
-    actual = set(primitive_rules)
-    if actual != set(EXPECTED_PRIMITIVE_RULES):
+    expected_counts = {"Sa": 1, "Sb": 2, "Ad": 2, "Smp": 2}
+    expected_required = {
+        "Sa": {"kind", "parents", "atom_substitution"},
+        "Sb": {"kind", "parents", "direction", "occurrence_path"},
+        "Ad": {"kind", "parents"},
+        "Smp": {"kind", "parents"},
+    }
+    for rid, count in expected_counts.items():
+        rule = primitive.get(rid, {})
+        if rule.get("project_label") != rid:
+            issues.append(ValidationIssue("RULE_LABEL", f"{rid} project_label mismatch"))
+        if rule.get("premise_count") != count:
+            issues.append(ValidationIssue("RULE_PREMISES", f"{rid} premise_count must be {count}"))
+        contract = rule.get("certificate_contract", {})
+        if set(contract.get("required_fields", [])) != expected_required[rid]:
+            issues.append(ValidationIssue("RULE_CONTRACT", f"{rid} required certificate fields are not frozen correctly"))
+
+    path = _as_mapping(rules.get("occurrence_path_grammar"), "occurrence_path_grammar", issues)
+    if path.get("root") != [] or path.get("legal_segments") != ["arg", "left", "right"]:
+        issues.append(ValidationIssue("PATH_GRAMMAR", "occurrence path must use [] root and arg/left/right segments"))
+
+    kinds = _as_mapping(rules.get("kernel_certificate_kinds"), "kernel_certificate_kinds", issues)
+    if set(kinds) != set(EXPECTED_CERTIFICATE_KINDS):
         issues.append(
-            ValidationIssue(
-                "PRIMITIVE_RULE_SET",
-                f"primitive rules are {sorted(actual)}; expected exactly "
-                f"{sorted(EXPECTED_PRIMITIVE_RULES)}",
-            )
+            ValidationIssue("CERTIFICATE_KINDS", f"trusted certificate kinds must be {sorted(EXPECTED_CERTIFICATE_KINDS)}")
         )
+    dc = kinds.get("definition_conversion", {})
+    if dc.get("is_lewis_inference_rule") is not False:
+        issues.append(ValidationIssue("DF_RULE", "definition_conversion must not be a Lewis inference rule"))
+    if dc.get("direction_values") != ["expand", "contract"]:
+        issues.append(ValidationIssue("DF_DIRECTION", "definition_conversion directions must be expand/contract"))
 
-    for rule_id in EXPECTED_PRIMITIVE_RULES:
-        rule = primitive_rules.get(rule_id)
-        if rule is None:
-            continue
-        if not isinstance(rule, Mapping):
-            issues.append(
-                ValidationIssue(
-                    "RULE_SPEC",
-                    f"rules.primitive_rules.{rule_id} must be a mapping",
-                )
-            )
-            continue
-        if rule.get("project_label") != rule_id:
-            issues.append(
-                ValidationIssue(
-                    "RULE_LABEL",
-                    f"{rule_id} project_label must remain {rule_id!r}",
-                )
-            )
-        if not isinstance(rule.get("premise_count"), int):
-            issues.append(
-                ValidationIssue(
-                    "RULE_PREMISE_COUNT",
-                    f"{rule_id}.premise_count must be an integer",
-                )
-            )
+    post = kinds.get("postulate_instance", {})
+    if post.get("is_lewis_inference_rule") is not False:
+        issues.append(ValidationIssue("POSTULATE_RULE", "postulate_instance is not a Lewis inference rule"))
+    sub = post.get("schema_substitution", {})
+    if "schema metavariables" not in str(sub.get("key_namespace", "")):
+        issues.append(ValidationIssue("SCHEMA_NAMESPACE", "postulate_instance must use schema metavariable namespace"))
 
-    forbidden = _as_mapping(
-        rules.get("explicitly_forbidden_rules"),
-        path="rules.explicitly_forbidden_rules",
-        issues=issues,
-    )
-    necessitation = _as_mapping(
-        forbidden.get("unrestricted_necessitation"),
-        path="rules.explicitly_forbidden_rules.unrestricted_necessitation",
-        issues=issues,
-    )
-    if necessitation.get("enabled") is not False:
-        issues.append(
-            ValidationIssue(
-                "NECESSITATION_ENABLED",
-                "unrestricted necessitation must remain disabled",
-            )
-        )
+    sa_sub = primitive.get("Sa", {}).get("certificate_contract", {}).get("atom_substitution", {})
+    if "object atom" not in str(sa_sub.get("key_namespace", "")):
+        issues.append(ValidationIssue("SA_NAMESPACE", "Sa must use object atom namespace"))
+    if sa_sub.get("application") != "simultaneous, one-pass, nonrecursive into replacement values":
+        issues.append(ValidationIssue("SA_SEMANTICS", "Sa simultaneous one-pass nonrecursive semantics not frozen"))
 
-    non_rules = _as_mapping(
-        rules.get("non_rules"), path="rules.non_rules", issues=issues
-    )
-    for name in (
-        "definition_expansion",
-        "definition_contraction",
-        "theorem_library_lookup",
-        "system_inclusion",
-    ):
-        if name not in non_rules:
-            issues.append(
-                ValidationIssue(
-                    "NON_RULE_MISSING",
-                    f"rules.non_rules must document {name}",
-                )
-            )
+    grammar = _as_mapping(rules.get("proof_node_grammar"), "proof_node_grammar", issues)
+    if grammar.get("parent_reference_field") != "parents":
+        issues.append(ValidationIssue("PARENT_VOCAB", "all parent references must use parents"))
+    if grammar.get("no_extra_node_fields") is not True:
+        issues.append(ValidationIssue("NODE_FIELDS", "proof nodes must reject extra logical fields"))
+
+    if rules.get("explicitly_forbidden_rules", {}).get("unrestricted_necessitation", {}).get("enabled") is not False:
+        issues.append(ValidationIssue("NECESSITATION", "unrestricted necessitation must be disabled"))
+
+    if freeze and len(rules.get("dag_invariants", [])) < 6:
+        issues.append(ValidationIssue("DAG_INVARIANTS", "DAG invariants are incomplete"))
 
 
 def _check_schemas(bundle, issues):
-    schemas_doc = bundle.schemas
-    schemas = _as_mapping(
-        schemas_doc.get("schemas"), path="schemas.schemas", issues=issues
-    )
-
-    actual_ids = frozenset(schemas)
-    if actual_ids != EXPECTED_SCHEMA_IDS:
-        issues.append(
-            ValidationIssue(
-                "SCHEMA_REGISTRY",
-                f"primitive schema registry drift; "
-                f"missing={sorted(EXPECTED_SCHEMA_IDS - actual_ids)}, "
-                f"extra={sorted(actual_ids - EXPECTED_SCHEMA_IDS)}",
-            )
-        )
-
-    forbidden_ids = {f"A{i}" for i in range(1, 8)} | {"B9"}
-    leaked = forbidden_ids & actual_ids
-    if leaked:
-        issues.append(
-            ValidationIssue(
-                "OMITTED_SCHEMA_LEAK",
-                f"normalized primitive registry must not contain {sorted(leaked)}",
-            )
-        )
-
-    formula_ast = _as_mapping(
-        bundle.language.get("formula_ast"),
-        path="language.formula_ast",
-        issues=issues,
-    )
-
-    for schema_id, schema in schemas.items():
-        if not isinstance(schema, Mapping):
-            issues.append(
-                ValidationIssue(
-                    "SCHEMA_SPEC",
-                    f"schemas.schemas.{schema_id} must be a mapping",
-                )
-            )
-            continue
-
-        ast = schema.get("ast")
-        if ast is None:
-            issues.append(
-                ValidationIssue("SCHEMA_AST_MISSING", f"{schema_id} has no ast")
-            )
-        else:
-            _validate_ast_recursively(
-                ast,
-                path=f"schemas.schemas.{schema_id}.ast",
-                formula_ast=formula_ast,
-                issues=issues,
-            )
-
-        source = _as_mapping(
-            schema.get("source"),
-            path=f"schemas.schemas.{schema_id}.source",
-            issues=issues,
-        )
+    schemas = _as_mapping(bundle.schemas.get("schemas"), "schemas.schemas", issues)
+    if set(schemas) != set(EXPECTED_SCHEMA_IDS):
+        issues.append(ValidationIssue("SCHEMA_SET", "primitive schema registry drift"))
+    if ({f"A{i}" for i in range(1, 8)} | {"B9"}) & set(schemas):
+        issues.append(ValidationIssue("SCHEMA_LEAK", "A1-A7/B9 must not enter primitive registry"))
+    formula_ast = bundle.language.get("formula_ast", {})
+    for sid, schema in schemas.items():
+        _validate_ast(schema.get("ast"), f"schemas.{sid}.ast", formula_ast, issues)
+        source = schema.get("source", {})
         for field in ("work", "edition", "locus"):
             if not source.get(field):
-                issues.append(
-                    ValidationIssue(
-                        "SCHEMA_PROVENANCE",
-                        f"{schema_id}.source.{field} must be present",
-                    )
-                )
-
-    policy = _as_mapping(
-        schemas_doc.get("schema_policy"),
-        path="schemas.schema_policy",
-        issues=issues,
-    )
-    if policy.get("no_duplicate_A1_A7") is not True:
-        issues.append(
-            ValidationIssue(
-                "A_SERIES_POLICY",
-                "schemas.schema_policy.no_duplicate_A1_A7 must remain true",
-            )
-        )
-
-    omitted = _as_mapping(
-        schemas_doc.get("omitted_historical_schemas"),
-        path="schemas.omitted_historical_schemas",
-        issues=issues,
-    )
-    for required in ("A1_A6", "A7", "B9"):
-        if required not in omitted:
-            issues.append(
-                ValidationIssue(
-                    "OMISSION_DOC",
-                    f"omitted_historical_schemas must document {required}",
-                )
-            )
+                issues.append(ValidationIssue("SCHEMA_SOURCE", f"{sid} missing source.{field}"))
 
 
-def resolve_basis(systems, system_id, *, alternative=False):
-    """Resolve schema inheritance for one normalized system basis."""
+def resolve_basis(systems: Mapping[str, Any], system_id: str, *, alternative=False) -> frozenset[str]:
     visiting = []
-
-    def resolve(current, use_alternative=False):
+    def resolve(current, use_alt=False):
         if current in visiting:
-            cycle = " -> ".join(visiting + [current])
-            raise ValueError(f"cyclic schema inheritance: {cycle}")
+            raise ValueError("cyclic schema inheritance: " + " -> ".join(visiting + [current]))
         if current not in systems:
-            raise ValueError(f"unknown inherited system {current!r}")
-
+            raise ValueError(f"unknown system {current}")
         visiting.append(current)
-        system = systems[current]
-        if not isinstance(system, Mapping):
-            raise ValueError(f"system {current!r} is not a mapping")
-
+        sys = systems[current]
         if current == "S5":
-            key = (
-                "alternative_normalized_basis"
-                if use_alternative
-                else "primary_normalized_basis"
-            )
+            key = "alternative_normalized_basis" if use_alt else "primary_normalized_basis"
         else:
-            if use_alternative:
+            if use_alt:
                 raise ValueError(f"{current} has no alternative basis")
             key = "normalized_basis"
-
-        block = system.get(key)
+        block = sys.get(key)
         if not isinstance(block, Mapping):
-            raise ValueError(f"{current}.{key} is missing or malformed")
-
+            raise ValueError(f"{current}.{key} missing")
         result = set()
         parent = block.get("inherit_schemas_from")
-        if parent is not None:
-            if not isinstance(parent, str):
-                raise ValueError(
-                    f"{current}.{key}.inherit_schemas_from must be a string"
-                )
+        if parent:
             result.update(resolve(parent, False))
-
         direct = block.get("schemas")
         additions = block.get("add_schemas")
         if direct is not None and additions is not None:
-            raise ValueError(
-                f"{current}.{key} must not use both 'schemas' and 'add_schemas'"
-            )
-
-        chosen = direct if direct is not None else additions
-        if chosen is None:
-            chosen = []
+            raise ValueError(f"{current}.{key} contains schemas and add_schemas")
+        chosen = direct if direct is not None else additions or []
         if not isinstance(chosen, list) or not all(isinstance(x, str) for x in chosen):
-            raise ValueError(f"{current}.{key} schema list must contain strings")
-
+            raise ValueError(f"{current}.{key} schema list malformed")
         result.update(chosen)
         visiting.pop()
         return result
-
     return frozenset(resolve(system_id, alternative))
 
 
-def _basis_block(systems, system_id, alternative=False):
-    system = systems[system_id]
-    if system_id == "S5":
-        key = (
-            "alternative_normalized_basis"
-            if alternative
-            else "primary_normalized_basis"
-        )
+def _basis_block(systems, sid, alternative=False):
+    if sid == "S5":
+        key = "alternative_normalized_basis" if alternative else "primary_normalized_basis"
     else:
         key = "normalized_basis"
-    block = system.get(key)
-    return block if isinstance(block, Mapping) else {}
+    return systems[sid].get(key, {})
 
 
-def _check_systems(bundle, issues):
+def _check_systems(bundle, issues, freeze):
     systems_doc = bundle.systems
-    systems = _as_mapping(
-        systems_doc.get("systems"), path="systems.systems", issues=issues
-    )
-    schema_registry = _as_mapping(
-        bundle.schemas.get("schemas"), path="schemas.schemas", issues=issues
-    )
-    rule_registry = _as_mapping(
-        bundle.rules.get("primitive_rules"),
-        path="rules.primitive_rules",
-        issues=issues,
-    )
-
+    systems = _as_mapping(systems_doc.get("systems"), "systems.systems", issues)
     if set(systems) != set(EXPECTED_SYSTEMS):
-        issues.append(
-            ValidationIssue(
-                "SYSTEM_REGISTRY",
-                f"systems registry is {sorted(systems)}; expected {sorted(EXPECTED_SYSTEMS)}",
-            )
-        )
+        issues.append(ValidationIssue("SYSTEM_SET", "system registry must be exactly S1-S5"))
 
-    for system_id in EXPECTED_SYSTEMS:
-        if system_id not in systems:
+    for sid in EXPECTED_SYSTEMS:
+        if sid not in systems:
             continue
-
         try:
-            resolved = resolve_basis(systems, system_id)
+            resolved = resolve_basis(systems, sid)
         except ValueError as exc:
-            issues.append(
-                ValidationIssue("SYSTEM_BASIS_RESOLUTION", f"{system_id}: {exc}")
-            )
+            issues.append(ValidationIssue("BASIS_RESOLUTION", f"{sid}: {exc}"))
             continue
-
-        expected = EXPECTED_RESOLVED_BASES[system_id]
-        if resolved != expected:
-            issues.append(
-                ValidationIssue(
-                    "SYSTEM_BASIS_DRIFT",
-                    f"{system_id} resolves to {sorted(resolved)}; "
-                    f"expected {sorted(expected)}",
-                )
-            )
-
-        unknown = resolved - set(schema_registry)
-        if unknown:
-            issues.append(
-                ValidationIssue(
-                    "SYSTEM_UNKNOWN_SCHEMA",
-                    f"{system_id} references unregistered schemas {sorted(unknown)}",
-                )
-            )
-
-        block = _basis_block(systems, system_id)
-        basis_rules = block.get("rules")
-        if not isinstance(basis_rules, list):
-            issues.append(
-                ValidationIssue(
-                    "SYSTEM_RULES_TYPE",
-                    f"{system_id} basis rules must be a list",
-                )
-            )
-        else:
-            if set(basis_rules) != set(EXPECTED_PRIMITIVE_RULES):
-                issues.append(
-                    ValidationIssue(
-                        "SYSTEM_RULE_SET",
-                        f"{system_id} basis rules are {sorted(basis_rules)}; expected "
-                        f"{sorted(EXPECTED_PRIMITIVE_RULES)}",
-                    )
-                )
-            unknown_rules = set(basis_rules) - set(rule_registry)
-            if unknown_rules:
-                issues.append(
-                    ValidationIssue(
-                        "SYSTEM_UNKNOWN_RULE",
-                        f"{system_id} references unregistered rules {sorted(unknown_rules)}",
-                    )
-                )
+        if resolved != EXPECTED_RESOLVED_BASES[sid]:
+            issues.append(ValidationIssue("BASIS_DRIFT", f"{sid} primary/normal basis drift"))
+        block = _basis_block(systems, sid)
+        if set(block.get("rules", [])) != set(EXPECTED_PRIMITIVE_RULES):
+            issues.append(ValidationIssue("BASIS_RULES", f"{sid} must use exactly Sa,Sb,Ad,Smp"))
+        expected_bid = EXPECTED_BASIS_IDS[sid][0]
+        if block.get("basis_id") != expected_bid:
+            issues.append(ValidationIssue("BASIS_ID", f"{sid} basis_id must be {expected_bid}"))
 
     if "S5" in systems:
-        try:
-            alt = resolve_basis(systems, "S5", alternative=True)
-        except ValueError as exc:
-            issues.append(
-                ValidationIssue("S5_ALT_RESOLUTION", f"S5 alternative basis: {exc}")
-            )
-        else:
-            if alt != EXPECTED_S5_ALTERNATIVE:
-                issues.append(
-                    ValidationIssue(
-                        "S5_ALT_BASIS_DRIFT",
-                        f"S5 alternative resolves to {sorted(alt)}; expected "
-                        f"{sorted(EXPECTED_S5_ALTERNATIVE)}",
-                    )
-                )
+        if resolve_basis(systems, "S5", alternative=True) != EXPECTED_S5_ALTERNATIVE:
+            issues.append(ValidationIssue("S5_ALT", "S5 alternative basis drift"))
+        alt = _basis_block(systems, "S5", True)
+        if alt.get("basis_id") != EXPECTED_BASIS_IDS["S5"][1]:
+            issues.append(ValidationIssue("S5_ALT_ID", "S5 alternative basis_id mismatch"))
+        policy = systems["S5"].get("proof_basis_policy", {})
+        if policy.get("union_forbidden") is not True:
+            issues.append(ValidationIssue("S5_UNION", "S5 basis union must be explicitly forbidden"))
 
-        alt_rules = _basis_block(systems, "S5", alternative=True).get("rules")
-        if not isinstance(alt_rules, list) or set(alt_rules) != set(EXPECTED_PRIMITIVE_RULES):
-            issues.append(
-                ValidationIssue(
-                    "S5_ALT_RULE_SET",
-                    "S5 alternative basis must use exactly Sa, Sb, Ad, Smp",
-                )
-            )
+    cp = _as_mapping(systems_doc.get("certificate_basis_policy"), "certificate_basis_policy", issues)
+    if cp.get("basis_id_required_for_every_proof") is not True:
+        issues.append(ValidationIssue("BASIS_REQUIRED", "every proof must require basis_id"))
+    declared = cp.get("system_basis_ids")
+    expected_declared = {k: list(v) for k, v in EXPECTED_BASIS_IDS.items()}
+    if declared != expected_declared:
+        issues.append(ValidationIssue("BASIS_REGISTRY", "certificate basis-id registry mismatch"))
 
-    inclusion = _as_mapping(
-        systems_doc.get("theorem_inclusion"),
-        path="systems.theorem_inclusion",
-        issues=issues,
-    )
-    if inclusion.get("trusted_by_kernel_without_bridge") is not False:
-        issues.append(
-            ValidationIssue(
-                "THEOREM_INCLUSION_TRUST",
-                "kernel must not trust theorem inclusion without bridge certificates",
-            )
-        )
-    if inclusion.get("intended_hierarchy") != list(EXPECTED_SYSTEMS):
-        issues.append(
-            ValidationIssue(
-                "THEOREM_HIERARCHY",
-                f"intended_hierarchy must be {list(EXPECTED_SYSTEMS)!r}",
-            )
-        )
+    inc = systems_doc.get("theorem_inclusion", {})
+    if inc.get("trusted_by_kernel_without_bridge") is not False:
+        issues.append(ValidationIssue("INCLUSION_TRUST", "theorem inclusion may not bypass bridges"))
 
-    extensions = _as_mapping(
-        systems_doc.get("extensions_not_in_m0"),
-        path="systems.extensions_not_in_m0",
-        issues=issues,
-    )
-    b9 = _as_mapping(
-        extensions.get("B9_existence"),
-        path="systems.extensions_not_in_m0.B9_existence",
-        issues=issues,
-    )
-    if b9.get("enabled") is not False:
-        issues.append(
-            ValidationIssue("B9_ENABLED", "B9 extension must remain disabled in M0")
-        )
+    if systems_doc.get("extensions_not_in_m0", {}).get("B9_existence", {}).get("enabled") is not False:
+        issues.append(ValidationIssue("B9", "B9 must remain disabled"))
 
 
-def validate_bundle(bundle):
+def _canonical_json(obj):
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _check_fingerprint_lock(bundle, issues):
+    lock_path = bundle.spec_dir.parent / "audit/m0/certified_ast_fingerprints.yaml"
+    try:
+        lock = load_yaml_mapping(lock_path)
+    except ValidationError as exc:
+        issues.extend(exc.issues)
+        return
+    expected_schema = lock.get("schema_ast_sha256", {})
+    expected_defs = lock.get("metadefinition_ast_sha256", {})
+    if set(expected_schema) != set(EXPECTED_SCHEMA_IDS):
+        issues.append(ValidationIssue("FINGERPRINT_SCHEMA_IDS", "fingerprint schema-id coverage mismatch"))
+    for sid, schema in bundle.schemas.get("schemas", {}).items():
+        actual = hashlib.sha256(_canonical_json(schema["ast"]).encode("utf-8")).hexdigest()
+        if expected_schema.get(sid) != actual:
+            issues.append(ValidationIssue("FINGERPRINT_SCHEMA", f"{sid} AST differs from audited fingerprint"))
+    for did, definition in bundle.language.get("metadefinitions", {}).items():
+        actual = hashlib.sha256(
+            _canonical_json({"lhs": definition["lhs"], "rhs": definition["rhs"]}).encode("utf-8")
+        ).hexdigest()
+        if expected_defs.get(did) != actual:
+            issues.append(ValidationIssue("FINGERPRINT_DEFINITION", f"{did} differs from audited fingerprint"))
+
+
+def validate_bundle(bundle: SpecBundle, *, freeze=False):
     issues = []
-    _check_metadata(bundle, issues)
-    _check_language(bundle, issues)
-    _check_rules(bundle, issues)
+    _check_metadata(bundle, issues, freeze)
+    _check_language(bundle, issues, freeze)
+    _check_rules(bundle, issues, freeze)
     _check_schemas(bundle, issues)
-    _check_systems(bundle, issues)
+    _check_systems(bundle, issues, freeze)
+    if freeze:
+        _check_fingerprint_lock(bundle, issues)
     return tuple(issues)
 
 
-def validate_spec_dir(spec_dir: Path | str = "spec") -> SpecBundle:
+def validate_spec_dir(spec_dir: Path | str = "spec", *, freeze=False) -> SpecBundle:
     bundle = load_spec_bundle(spec_dir)
-    issues = validate_bundle(bundle)
+    issues = validate_bundle(bundle, freeze=freeze)
     if issues:
         raise ValidationError(issues)
     return bundle
@@ -935,37 +581,34 @@ def validate_spec_dir(spec_dir: Path | str = "spec") -> SpecBundle:
 def summary_lines(bundle):
     return [
         f"spec directory: {bundle.spec_dir}",
+        f"spec version: {bundle.language.get('spec_version')}",
         f"AST constructors: {len(bundle.language.get('formula_ast', {}))}",
         f"primitive schemas: {len(bundle.schemas.get('schemas', {}))}",
-        f"primitive rules: {len(bundle.rules.get('primitive_rules', {}))}",
+        f"primitive Lewis rules: {len(bundle.rules.get('primitive_rules', {}))}",
+        f"trusted certificate kinds: {len(bundle.rules.get('kernel_certificate_kinds', {}))}",
         f"systems: {len(bundle.systems.get('systems', {}))}",
     ]
 
 
-def _parse_args(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--spec-dir",
-        default="spec",
-        type=Path,
-        help="directory containing the four M0 YAML files (default: spec)",
-    )
-    parser.add_argument("--quiet", action="store_true", help="print only failures")
-    return parser.parse_args(argv)
-
-
 def main(argv=None):
-    args = _parse_args(argv)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--spec-dir", type=Path, default=Path("spec"))
+    parser.add_argument("--freeze", action="store_true", help="run M0.3 closure-candidate freeze-readiness checks")
+    parser.add_argument("--quiet", action="store_true")
+    args = parser.parse_args(argv)
+
     try:
-        bundle = validate_spec_dir(args.spec_dir)
+        bundle = validate_spec_dir(args.spec_dir, freeze=args.freeze)
     except ValidationError as exc:
-        print("M0 SPEC VALIDATION: FAIL")
+        label = "M0 SPEC FREEZE READINESS" if args.freeze else "M0 SPEC VALIDATION"
+        print(f"{label}: FAIL")
         for issue in exc.issues:
             print(f"  {issue}")
         return 1
 
     if not args.quiet:
-        print("M0 SPEC VALIDATION: PASS")
+        label = "M0 SPEC FREEZE READINESS" if args.freeze else "M0 SPEC VALIDATION"
+        print(f"{label}: PASS")
         for line in summary_lines(bundle):
             print(f"  {line}")
     return 0

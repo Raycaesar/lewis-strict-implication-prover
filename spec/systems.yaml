@@ -1,7 +1,7 @@
-spec_version: '0.1'
+spec_version: '0.3'
 component: systems
 project: lewis-strict-implication-prover
-status: draft_m0
+status: candidate_m0
 normalization_policy:
   purpose: Represent only S1-S5 without duplicating L&L's overlapping A- and B-postulate lists.
   key_decisions:
@@ -30,6 +30,7 @@ systems:
       - Sb
       - Ad
       - Smp
+      basis_id: S1_B1_B7
     historical_source_note: 'L&L Appendix II: S1 is deduced from B1-B7.'
     excluded:
     - B8
@@ -49,6 +50,7 @@ systems:
       - Sb
       - Ad
       - Smp
+      basis_id: S2_B1_B8
     historical_source_note: 'L&L Appendix II: S2 is deduced from B1-B8.'
     excluded:
     - B9
@@ -67,8 +69,11 @@ systems:
       - Sb
       - Ad
       - Smp
-    historical_basis_note: L&L p. 500 presents S3 by A1-A8. The normalized prover uses S1 + A8; Parry 1939 pp. 137-138
-      gives direct syntactic support for the 11.1-11.7 + 30.1/A8 presentation.
+      basis_id: S3_B1_B7_A8
+    historical_basis_note: L&L p. 500 presents S3 by A1-A8. Parry 1939 pp. 137-138 displays a reduced S3 postulate
+      list based on 11.1-11.4, 11.6, 11.7 and 30.1/A8, with 11.5 supplied by McKinsey's derivation. This directly
+      supports the normalized B1-B7+A8 presentation without claiming that Parry literally prints all of 11.1-11.7
+      as primitive.
     normalization_obligations:
     - id: S1_DERIVES_A7
       statement: 'S1 proves A7: ∼◇P ⥽ ∼P.'
@@ -95,6 +100,7 @@ systems:
       - Sb
       - Ad
       - Smp
+      basis_id: S4_B1_B7_C10
     historical_source_note: 'L&L Appendix II p. 501: S4 is deduced from B1-B7 together with C10; A8 and B8 are deductible.'
     bridge_obligations:
     - id: S4_DERIVES_S3_EXTENSION
@@ -116,6 +122,7 @@ systems:
       - Sb
       - Ad
       - Smp
+      basis_id: S5_PRIMARY_B1_B7_C11
     alternative_normalized_basis:
       inherit_schemas_from: S1
       add_schemas:
@@ -126,19 +133,35 @@ systems:
       - Sb
       - Ad
       - Smp
+      basis_id: S5_ALT_B1_B7_C10_C12
     historical_source_note: 'L&L Appendix II p. 501: S5 is deduced from B1-B7+C11, or from B1-B7+C10+C12.'
     bridge_obligations:
     - id: C10_C12_DERIVE_C11
       statement: S1 + C10 + C12 proves C11.
       historical_regression: Shen Yuting derivation
       status: to_be_machine_certified
-      source: L&L Appendix II p. 498, item (14)
+      source: L&L p. 498 item (14) gives the derivability under that paragraph's stated A1-A8/B1-B9 background;
+        L&L p. 501 canonically states the B1-B7+C10+C12 S5 presentation.
+      source_basis_id: S5_ALT_B1_B7_C10_C12
+      target_basis_id: S5_PRIMARY_B1_B7_C11
     - id: C11_DERIVES_C10_C12
       statement: S1 + C11 proves the C10/C12 presentation required for basis equivalence.
       status: to_be_machine_certified
-      source: L&L Appendix II p. 498, items (12)-(13)
+      source: L&L p. 498 items (12)-(13) give the derivabilities under that paragraph's stated A1-A8/B1-B9 background;
+        L&L p. 501 canonically states both B1-B7-based S5 presentations.
+      source_basis_id: S5_PRIMARY_B1_B7_C11
+      target_basis_id: S5_ALT_B1_B7_C10_C12
     excluded:
     - B9
+    proof_basis_policy:
+      certificate_requirement: Every S5 proof certificate must declare exactly one basis_id.
+      ui_default: S5_PRIMARY_B1_B7_C11
+      allowed_basis_ids:
+      - S5_PRIMARY_B1_B7_C11
+      - S5_ALT_B1_B7_C10_C12
+      union_forbidden: true
+      note: The checker must never admit the union B1-B7+C10+C11+C12 as one primitive basis. Bridge proofs carry
+        explicit source_basis_id and target_basis_id metadata.
 theorem_inclusion:
   intended_hierarchy:
   - S1
@@ -154,3 +177,22 @@ extensions_not_in_m0:
     enabled: false
     reason: B9 introduces propositional existence quantification and is outside the requested S1-S5 propositional/modal
       prover core.
+certificate_basis_policy:
+  basis_id_required_for_every_proof: true
+  system_basis_ids:
+    S1:
+    - S1_B1_B7
+    S2:
+    - S2_B1_B8
+    S3:
+    - S3_B1_B7_A8
+    S4:
+    - S4_B1_B7_C10
+    S5:
+    - S5_PRIMARY_B1_B7_C11
+    - S5_ALT_B1_B7_C10_C12
+  schema_admission: A postulate_instance is accepted only if schema_id belongs to the exact resolved schema set
+    of the declared basis_id.
+  bridge_metadata:
+  - source_basis_id
+  - target_basis_id

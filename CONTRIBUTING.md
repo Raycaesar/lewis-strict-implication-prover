@@ -13,7 +13,7 @@ A contribution that blurs these layers will not be accepted even if it proves th
 Read:
 
 - `AGENTS.md`
-- `docs/FOUNDATIONAL_SPEC_v0.2.md`
+- `docs/FOUNDATIONAL_SPEC_v0.3.md`
 - `docs/SOURCE_POLICY.md`
 - `docs/ARCHITECTURE.md`
 - `docs/PROOF_CERTIFICATE_SPEC.md`
@@ -72,3 +72,5 @@ docs: document C10/C12 to C11 bridge
 ```
 
 Do not combine foundational changes with unrelated refactors.
+
+Foundational certificate changes must update the M0 obligations register and pass both validator `--freeze` modes before closure audit.

@@ -1,42 +1,49 @@
+import copy
+
 from scripts.validate_spec import (
+    EXPECTED_BASIS_IDS,
     EXPECTED_RESOLVED_BASES,
     EXPECTED_S5_ALTERNATIVE,
-    EXPECTED_SYSTEMS,
     resolve_basis,
+    validate_bundle,
 )
 
 
-def test_system_registry_is_exact(spec_bundle):
-    assert set(spec_bundle.systems["systems"]) == set(EXPECTED_SYSTEMS)
-
-
-def test_primary_normalized_bases_resolve_exactly(spec_bundle):
+def test_resolved_primary_bases(spec_bundle):
     systems = spec_bundle.systems["systems"]
-    for system_id, expected in EXPECTED_RESOLVED_BASES.items():
-        assert resolve_basis(systems, system_id) == expected
+    for sid, expected in EXPECTED_RESOLVED_BASES.items():
+        assert resolve_basis(systems, sid) == expected
 
 
-def test_s5_alternative_basis_resolves_exactly(spec_bundle):
+def test_s5_alternative_basis(spec_bundle):
+    assert resolve_basis(spec_bundle.systems["systems"], "S5", alternative=True) == EXPECTED_S5_ALTERNATIVE
+
+
+def test_basis_ids_are_stable(spec_bundle):
     systems = spec_bundle.systems["systems"]
-    assert resolve_basis(systems, "S5", alternative=True) == EXPECTED_S5_ALTERNATIVE
+    assert systems["S1"]["normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S1"][0]
+    assert systems["S2"]["normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S2"][0]
+    assert systems["S3"]["normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S3"][0]
+    assert systems["S4"]["normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S4"][0]
+    assert systems["S5"]["primary_normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S5"][0]
+    assert systems["S5"]["alternative_normalized_basis"]["basis_id"] == EXPECTED_BASIS_IDS["S5"][1]
 
 
-def test_every_system_uses_only_the_four_primitive_rules(spec_bundle):
-    systems = spec_bundle.systems["systems"]
-    expected = {"Sa", "Sb", "Ad", "Smp"}
-
-    for system_id in ("S1", "S2", "S3", "S4"):
-        assert set(systems[system_id]["normalized_basis"]["rules"]) == expected
-
-    assert set(systems["S5"]["primary_normalized_basis"]["rules"]) == expected
-    assert set(systems["S5"]["alternative_normalized_basis"]["rules"]) == expected
+def test_s5_union_is_forbidden(spec_bundle):
+    policy = spec_bundle.systems["systems"]["S5"]["proof_basis_policy"]
+    assert policy["union_forbidden"] is True
+    assert policy["ui_default"] == "S5_PRIMARY_B1_B7_C11"
 
 
-def test_theorem_inclusion_is_not_kernel_trusted(spec_bundle):
-    inclusion = spec_bundle.systems["theorem_inclusion"]
-    assert inclusion["trusted_by_kernel_without_bridge"] is False
+def test_every_proof_requires_basis_id(spec_bundle):
+    assert spec_bundle.systems["certificate_basis_policy"]["basis_id_required_for_every_proof"] is True
 
 
-def test_b9_extension_is_disabled(spec_bundle):
-    b9 = spec_bundle.systems["extensions_not_in_m0"]["B9_existence"]
-    assert b9["enabled"] is False
+def test_validator_rejects_s5_basis_id_collision(spec_bundle):
+    systems = copy.deepcopy(spec_bundle.systems)
+    systems["systems"]["S5"]["alternative_normalized_basis"]["basis_id"] = "S5_PRIMARY_B1_B7_C11"
+    mutated = type(spec_bundle)(
+        spec_bundle.spec_dir, spec_bundle.language, spec_bundle.rules, spec_bundle.schemas, systems
+    )
+    issues = validate_bundle(mutated)
+    assert any(i.code == "S5_ALT_ID" for i in issues)

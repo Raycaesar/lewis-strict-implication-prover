@@ -4,13 +4,23 @@
 
 This repository implements a native syntactic prover for Lewis strict-implication systems S1–S5.
 
-This file is binding on Codex and other coding agents working in the repository.
+This file is binding on Codex and other coding agents.
 
-## 1. Source of truth
+## 1. Current milestone
 
-Before changing any logic-sensitive code, read in this order:
+The repository is an **M0.3 closure-audit candidate**.
 
-1. `docs/FOUNDATIONAL_SPEC_v0.2.md`
+Do not implement M1 trusted-kernel code until the exact candidate commit has received:
+
+```text
+M0 FOUNDATIONAL SPECIFICATION CERTIFIED
+```
+
+## 2. Source of truth
+
+Before changing logic-sensitive material, read in this order:
+
+1. `docs/FOUNDATIONAL_SPEC_v0.3.md`
 2. `docs/SOURCE_POLICY.md`
 3. `spec/language.yaml`
 4. `spec/rules.yaml`
@@ -20,125 +30,157 @@ Before changing any logic-sensitive code, read in this order:
 8. `docs/ARCHITECTURE.md`
 9. `audit/m0/source_register.yaml`
 10. `audit/m0/foundational_obligations.yaml`
+11. `audit/m0/M0_FOUNDATIONAL_REPAIR_LOG_v0.3.md`
 
-If prose documentation conflicts with `spec/*.yaml`, **stop and report the conflict**. Do not guess which version is intended.
+If executable YAML and normative prose disagree, stop and report the conflict. Do not guess.
 
-No agent may silently edit the calculus to make implementation easier.
+## 3. Trusted-kernel invariant
 
-## 2. Trusted-kernel principle
+Every accepted theorem certificate must reduce to exactly these trusted certificate kinds:
 
-The final proof checker is the trusted component.
+```text
+postulate_instance
+Sa
+Sb
+Ad
+Smp
+definition_conversion
+```
 
-Every accepted theorem certificate must ultimately expand to:
+Only `Sa`, `Sb`, `Ad`, and `Smp` are Lewis inference operations.
 
-- a declared primitive axiom-schema instance of the selected system;
-- uniform substitution (`Sa`);
-- replacement of strict equivalents (`Sb`);
-- adjunction (`Ad`);
-- strict detachment (`Smp`);
-- explicitly licensed definition expansion/contraction, if and only if the specification permits it in the relevant mode.
+`definition_conversion` is trusted metalinguistic checking of registered definitions and is **not** a fifth Lewis inference rule.
 
-Derived rules, theorem-library entries, bridge lemmas, heuristics, semantic checks, SAT encodings, tableaux, sequent systems, or external provers must never be accepted as primitive proof steps.
+## 4. Exact surface-AST rule matching
 
-## 3. Forbidden shortcuts
+All Lewis primitive rules operate on exact visible/surface ASTs.
 
-Unless the specification is deliberately revised and re-audited, do not introduce:
+Do not silently expand or contract:
+
+```text
+or
+strict_imp
+equiv_s
+```
+
+to make a rule application succeed.
+
+Visible definitional change requires an explicit `definition_conversion` node.
+
+## 5. Namespace separation
+
+Never conflate:
+
+- schema metavariables `P,Q,R,...`;
+- object atoms `p,q,r,...`;
+- object-language `equiv_s`;
+- metalanguage structural equality;
+- metalanguage `:=`.
+
+`postulate_instance` maps schema metavariables to object formulas.
+
+`Sa` acts only on object atom names in an already checked theorem.
+
+## 6. Basis discipline
+
+Every proof certificate declares `system` and `basis_id`.
+
+Stable basis IDs:
+
+```text
+S1_B1_B7
+S2_B1_B8
+S3_B1_B7_A8
+S4_B1_B7_C10
+S5_PRIMARY_B1_B7_C11
+S5_ALT_B1_B7_C10_C12
+```
+
+Never union the two S5 bases.
+
+## 7. System invariants
+
+Normalized bases:
+
+```text
+S1 = B1–B7
+S2 = B1–B8
+S3 = B1–B7 + A8
+S4 = B1–B7 + C10
+S5 primary = B1–B7 + C11
+S5 alternative = B1–B7 + C10 + C12
+```
+
+Do not reintroduce A1–A7 as a second executable primitive list.
+
+Do not claim A1–A6 are all literal copies of B1–B6.
+
+A2, A4, and A7 require S1 theorem/bridge treatment.
+
+## 8. Forbidden shortcuts
+
+Do not introduce:
 
 - unrestricted necessitation;
-- Kripke-semantic validity as a proof step;
-- matrix validity as a proof step;
-- tableau or sequent rules as proof steps;
-- modern K/T/S4/S5 Hilbert axioms as substitutes for the Lewis bases;
-- object-language `=` for strict equivalence;
-- `Box` as a primitive or default object-language operator;
-- B9 or propositional existential quantification into the initial core.
+- Box into the M0 native language;
+- B9 into the initial core;
+- semantic validity as a proof step;
+- tableau/sequent/natural-deduction rules as native proof steps;
+- modern K/T/S4/S5 axioms as replacements for Lewis bases;
+- object-language `=`;
+- implicit definitional conversion;
+- mixed-basis S5 proof checking.
 
-Search may consult untrusted auxiliary procedures, but the result is accepted only after reconstruction and kernel verification.
+## 9. Occurrence paths
 
-## 4. Notation invariants
+`Sb` and `definition_conversion` use the single logical grammar defined in `spec/rules.yaml`:
 
-- Preserve the strict-implication fishhook in rendering.
-- Internal node name: `strict_imp`.
-- Strict equivalence is represented internally by `equiv_s`.
-- Metalanguage equality/definition must never be parsed as object-language strict equivalence.
-- The core M0 language does not contain `Box`.
-- Keep historical labels (`B1`, `B8`, `A8`, `C10`, `C11`, `C12`) stable.
+```text
+[]
+[arg]
+[left]
+[right]
+...
+```
 
-## 5. System invariants
+Dotted paths are renderer-only.
 
-Normalized prover bases:
+## 10. Search is untrusted
 
-- S1: B1–B7
-- S2: B1–B8
-- S3: B1–B7 + A8
-- S4: B1–B7 + C10
-- S5: B1–B7 + C11
+Future search may be sophisticated, but `PROVED` is emitted only after trusted certificate checking.
 
-Do not duplicate A1–A6 as an independent executable schema list merely because the 1932 historical presentation lists an A-series. Also do not claim that all A1–A6 are literal formula-for-formula copies of B1–B6; the normalization is justified by derivability/source reconstruction.
+Search failure means:
 
-A7 is not primitive in the normalized prover. It belongs in the derived/historical proof corpus once a checked S1 proof is available.
+```text
+NO_PROOF_FOUND_WITHIN_CURRENT_BOUNDS
+```
 
-The alternative S5 basis S1 + C10 + C12 is not automatically trusted. Its equivalence to the primary S5 basis must be represented by checked bridge proofs.
+unless a separate decision procedure is certified.
 
-## 6. Implementation stages
+## 11. Formula regression lock
 
-Do not skip stages:
+The schema and definition ASTs source-checked by the first foundational audit are locked by:
 
-- M0: specification normalization and audit
-- M1: tiny trusted kernel
-- M2: historical regression corpus
-- M3: certified derived-rule library
-- M4: automatic proof search
-- M5: system bridge library
-- M6: user interface
+```text
+audit/m0/certified_ast_fingerprints.yaml
+```
 
-A coding task must state which milestone it belongs to.
+Changing a locked AST is a foundational change requiring source re-audit.
 
-## 7. Proof-search failure
+## 12. Testing discipline
 
-Never infer non-theoremhood merely because bounded search fails.
+Logic-sensitive changes require:
 
-Allowed status:
+- structural validation;
+- source-register validation;
+- freeze-readiness validation where applicable;
+- positive tests;
+- mutation/rejection tests;
+- exact-basis rejection tests;
+- no tracked `*:Zone.Identifier`.
 
-`NO_PROOF_FOUND_WITHIN_CURRENT_BOUNDS`
+## 13. Change control
 
-Not allowed without a separately certified decision procedure:
+Any change to object language, definition semantics, primitive schema ASTs, primitive Lewis rules, certificate kinds/payloads, occurrence paths, or basis IDs/basis membership requires explicit foundational review.
 
-`NOT_A_THEOREM`
-
-## 8. Testing discipline
-
-Every logic-sensitive feature requires:
-
-1. positive tests;
-2. malformed-certificate rejection tests;
-3. wrong-system rejection tests where relevant;
-4. a primitive-only expansion test for any derived macro;
-5. regression tests preserving historical theorem labels and provenance.
-
-## 9. Change control
-
-Any change to:
-
-- the object language;
-- primitive rules;
-- primitive system bases;
-- schema ASTs;
-- definition status of a connective;
-- interpretation of `equiv_s`;
-- certificate semantics;
-
-is a **foundational change**.
-
-Foundational changes must not be bundled into ordinary refactors. They require an explicit specification update and a fresh foundational audit.
-
-## 10. Coding style
-
-When implementation begins:
-
-- prefer small pure functions in the kernel;
-- use immutable/hashable formula nodes where practical;
-- keep parser/rendering separate from proof validity;
-- keep search untrusted and outside the kernel;
-- make certificate errors structured and deterministic;
-- do not let convenience APIs bypass kernel checking.
+Do not bundle such changes into ordinary refactors.

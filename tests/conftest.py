@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 import sys
 
 import pytest
@@ -23,3 +24,16 @@ def spec_dir(repo_root: Path) -> Path:
 @pytest.fixture(scope="session")
 def spec_bundle(spec_dir: Path):
     return load_spec_bundle(spec_dir)
+
+
+@pytest.fixture
+def copied_m0(tmp_path, repo_root):
+    shutil.copytree(repo_root / "spec", tmp_path / "spec")
+    (tmp_path / "audit/m0").mkdir(parents=True)
+    for name in (
+        "certified_ast_fingerprints.yaml",
+        "source_register.yaml",
+        "foundational_obligations.yaml",
+    ):
+        shutil.copy2(repo_root / "audit/m0" / name, tmp_path / "audit/m0" / name)
+    return tmp_path

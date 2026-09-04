@@ -107,3 +107,29 @@ Canonical L&L provenance is:
 - `Sb`: Substitution (a), p. 125;
 - `Ad`: Adjunction, p. 126;
 - `Smp`: Inference, p. 126.
+
+
+## 9. M0.3 source clarifications
+
+### Parry 1939 and S3
+
+Parry 1939 pp. 137–138 supplies direct syntactic support for the normalized S3
+presentation, but the source record must be exact: Parry's displayed reduced
+postulate list does not literally contain all of 11.1–11.7 as primitives.
+11.5 is omitted because McKinsey had shown it derivable.
+
+The project therefore describes Parry as supporting the normalized
+`B1–B7 + A8` presentation, not as literally printing that exact unreduced list.
+
+### C10/C11/C12
+
+L&L p. 498 states items (12)–(14) under that paragraph's explicit
+A1–A8/B1–B9 background. The source register preserves this qualification.
+
+L&L p. 501 is the canonical direct source for the two B1–B7-based S5
+presentations:
+
+- B1–B7 + C11;
+- B1–B7 + C10 + C12.
+
+The future bridge library must still provide checked native certificates.

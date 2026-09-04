@@ -1,184 +1,239 @@
-spec_version: "0.1"
+spec_version: '0.3'
 component: language
 project: lewis-strict-implication-prover
-status: draft_m0
-
+status: candidate_m0
 source_policy:
-  canonical_historical_source: "Lewis & Langford, Symbolic Logic (1932), Chapter VI and Appendix II"
-  notation_policy: "Use the disambiguated notation of the Shen-Yuting manuscript rather than reproducing every typographical convention of L&L."
-
+  canonical_historical_source: Lewis & Langford, Symbolic Logic (1932), Chapter VI and Appendix II
+  notation_policy: Use the disambiguated notation of the Shen-Yuting manuscript rather than reproducing every typographical
+    convention of L&L.
 meta_object_separation:
   definitional_equality:
-    token: ":="
+    token: :=
     level: metalanguage
     parse_as_formula: false
-    purpose: "Introduces a notation/abbreviation; never denotes a connective of the object language."
+    purpose: Introduces a notation/abbreviation; never denotes a connective of the object language.
   plain_equality:
-    token: "="
+    token: '='
     allowed_in_object_formula: false
-    note: "L&L's overloaded '=' is deliberately not reproduced. Strict equivalence is represented by equiv_s."
+    note: L&L's overloaded '=' is deliberately not reproduced. Strict equivalence is represented by equiv_s.
   schema_metavariables:
-    representation: "Explicit YAML nodes of the form {meta: P}; never bare object-language atoms."
-    examples: [P, Q, R]
-
+    representation: 'Explicit YAML nodes of the form {meta: P}; never bare object-language atoms.'
+    examples:
+    - P
+    - Q
+    - R
 formula_ast:
   atom:
     arity: 0
-    fields: [name]
+    fields:
+    - name
     object_level: true
+    primitive: true
   neg:
     arity: 1
-    fields: [arg]
+    fields:
+    - arg
     object_level: true
     primitive: true
   and:
     arity: 2
-    fields: [left, right]
+    fields:
+    - left
+    - right
     object_level: true
     primitive: true
   poss:
     arity: 1
-    fields: [arg]
+    fields:
+    - arg
     object_level: true
     primitive: true
   strict_imp:
     arity: 2
-    fields: [left, right]
+    fields:
+    - left
+    - right
     object_level: true
     primitive: false
     first_class_surface_node: true
     definition_id: DEF_STRICT_IMP
-    note: "Retained as a first-class surface AST node because the Lewis fishhook is central to the prover and to proof search."
+    note: Retained as a first-class surface AST node because the Lewis fishhook is central to the prover and to
+      proof search.
   or:
     arity: 2
-    fields: [left, right]
+    fields:
+    - left
+    - right
     object_level: true
     primitive: false
     first_class_surface_node: true
     definition_id: DEF_OR
   equiv_s:
     arity: 2
-    fields: [left, right]
+    fields:
+    - left
+    - right
     object_level: true
     primitive: false
     first_class_surface_node: true
     definition_id: DEF_EQUIV_S
-    note: "Object-language strict equivalence. It replaces L&L's ambiguous use of '='."
-
+    note: Object-language strict equivalence. It replaces L&L's ambiguous use of '='.
 operators:
   neg:
     ast: neg
     precedence: 90
     associativity: prefix
-    article_latex: "\\sim"
-    unicode: "∼"
-    input_aliases: ["~", "¬", "∼"]
+    article_latex: \sim
+    unicode: ∼
+    input_aliases:
+    - '~'
+    - ¬
+    - ∼
   poss:
     ast: poss
     precedence: 90
     associativity: prefix
-    article_latex_macro: "\\poss"
-    unicode: "◇"
-    input_aliases: ["◇", "<>"]
+    article_latex_macro: \poss
+    unicode: ◇
+    input_aliases:
+    - ◇
+    - <>
   and:
     ast: and
     precedence: 70
     associativity: left
-    article_latex: "juxtaposition"
-    unicode: "∧"
-    input_aliases: ["&", "∧", "·"]
-    pretty_print_policy: "Use juxtaposition in Lewis/article rendering; use ∧ in diagnostic rendering when juxtaposition would be ambiguous."
+    article_latex: juxtaposition
+    unicode: ∧
+    input_aliases:
+    - '&'
+    - ∧
+    - ·
+    pretty_print_policy: Use juxtaposition in Lewis/article rendering; use ∧ in diagnostic rendering when juxtaposition
+      would be ambiguous.
   or:
     ast: or
     precedence: 60
     associativity: left
-    article_latex: "\\vee"
-    unicode: "∨"
-    input_aliases: ["|", "∨"]
+    article_latex: \vee
+    unicode: ∨
+    input_aliases:
+    - '|'
+    - ∨
   strict_imp:
     ast: strict_imp
     precedence: 40
     associativity: right
     historical_name: fishhook
-    article_latex_macro: "\\strictif"
-    unicode: "⥽"
-    input_aliases: ["⥽", "strictif", "=>"]
-    pretty_print_policy: "Always render as the Lewis fishhook (or the manuscript's \\strictif macro), never as material implication."
+    article_latex_macro: \strictif
+    unicode: ⥽
+    input_aliases:
+    - ⥽
+    - strictif
+    pretty_print_policy: Always render as the Lewis fishhook (or the manuscript's \strictif macro), never as material
+      implication.
   equiv_s:
     ast: equiv_s
     precedence: 30
     associativity: nonassoc
-    article_latex_macro: "\\strictequiv"
-    latex_expansion: "\\equiv_{s}"
-    unicode: "≡ₛ"
-    input_aliases: ["≡ₛ", "equiv_s", "<=>"]
-
+    article_latex_macro: \strictequiv
+    latex_expansion: \equiv_{s}
+    unicode: ≡ₛ
+    input_aliases:
+    - ≡ₛ
+    - equiv_s
+    - <=>
 forbidden_core_operators:
-  - id: box
-    reason: "L&L 1932 does not use Box in the object-language presentation adopted for the native syntactic proofs."
-  - id: material_imp
-    reason: "Not needed in the M0 native core; modern material implication may be added later only as an editorial/derived notation."
-  - id: object_equality
-    reason: "Use equiv_s for strict equivalence and := only in the metalanguage."
-
+- id: box
+  reason: L&L 1932 does not use Box in the object-language presentation adopted for the native syntactic proofs.
+- id: material_imp
+  reason: Not needed in the M0 native core; modern material implication may be added later only as an editorial/derived
+    notation.
+- id: object_equality
+  reason: Use equiv_s for strict equivalence and := only in the metalanguage.
 metadefinitions:
   DEF_OR:
     lhs:
       op: or
-      left: {meta: P}
-      right: {meta: Q}
+      left:
+        meta: P
+      right:
+        meta: Q
     rhs:
       op: neg
       arg:
         op: and
         left:
           op: neg
-          arg: {meta: P}
+          arg:
+            meta: P
         right:
           op: neg
-          arg: {meta: Q}
-    display: "P ∨ Q := ∼(∼P ∼Q)"
+          arg:
+            meta: Q
+    display: P ∨ Q := ∼(∼P ∼Q)
     level: metalanguage
-
   DEF_STRICT_IMP:
     lhs:
       op: strict_imp
-      left: {meta: P}
-      right: {meta: Q}
+      left:
+        meta: P
+      right:
+        meta: Q
     rhs:
       op: neg
       arg:
         op: poss
         arg:
           op: and
-          left: {meta: P}
+          left:
+            meta: P
           right:
             op: neg
-            arg: {meta: Q}
-    display: "P ⥽ Q := ∼◇(P ∼Q)"
+            arg:
+              meta: Q
+    display: P ⥽ Q := ∼◇(P ∼Q)
     level: metalanguage
-
   DEF_EQUIV_S:
     lhs:
       op: equiv_s
-      left: {meta: P}
-      right: {meta: Q}
+      left:
+        meta: P
+      right:
+        meta: Q
     rhs:
       op: and
       left:
         op: strict_imp
-        left: {meta: P}
-        right: {meta: Q}
+        left:
+          meta: P
+        right:
+          meta: Q
       right:
         op: strict_imp
-        left: {meta: Q}
-        right: {meta: P}
-    display: "P ≡ₛ Q := (P ⥽ Q)(Q ⥽ P)"
+        left:
+          meta: Q
+        right:
+          meta: P
+    display: P ≡ₛ Q := (P ⥽ Q)(Q ⥽ P)
     level: metalanguage
-
 elaboration_policy:
   definitions_are_inference_rules: false
-  kernel_canonical_form: "The kernel may elaborate or/or strict_imp/equiv_s to their definitions for checking, while certificates and rendered proofs may retain the surface nodes."
+  implicit_definition_conversion_allowed: false
+  surface_formula_identity: All Lewis primitive-rule checks use exact structural identity of the visible/surface
+    AST. The checker never expands or contracts a definition to rescue a failed rule match.
+  definition_conversion: Any visible expansion or contraction of DEF_OR, DEF_STRICT_IMP, or DEF_EQUIV_S must be
+    represented by an explicit trusted definition_conversion certificate node.
+  full_erasure: A deterministic recursive erasure into primitive atom/neg/and/poss syntax exists only for conservativity
+    checks and diagnostic rendering; it is not used as implicit rule matching.
   preserve_surface_fishhook: true
   preserve_equiv_s: true
   permit_box_sugar: false
+definition_well_formedness:
+  requirements:
+  - Each metadefinition LHS root is the first-class defined operator named by the definition_id.
+  - LHS and RHS contain exactly the same schema metavariable set.
+  - Repeated metavariables must match structurally under one substitution environment.
+  - The dependency graph among defined operators is acyclic.
+  - Definition expansion and contraction replace exactly one selected surface-AST occurrence.
+  note: Full erasure recursively follows registered definitions and must terminate because the definition dependency
+    graph is acyclic.

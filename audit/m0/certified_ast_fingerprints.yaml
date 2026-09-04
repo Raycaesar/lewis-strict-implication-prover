@@ -1,0 +1,21 @@
+lock_version: '0.1'
+basis_commit_audited: 4931e4daa124587a789ac27b841f499295facf5e
+purpose: Regression lock for formula ASTs and metadefinition ASTs independently source-checked in the 2026-09-04
+  foundational audit. A mismatch is a foundational change requiring source re-audit.
+schema_ast_sha256:
+  B1: edaef093111f3b2815172dc87f459e2acd2f7cacc915d3a6031bbcf37be3f571
+  B2: 87e4fe8e7f863a2b1bbe8ee76b9f6685f4030afd163ade3147d73d0011cb4150
+  B3: f8bbda9f8d9454e303e89efd9baecb3b37e1d837d24414963dfa8d1952e3887b
+  B4: 47d477c6a4f394753560bdd49cd0f4e49c5c0d028b6f3486dc8bd92209d34889
+  B5: 5e36b15d871d392b931a534b4ebebb9cc1cc716a66320a9dfab6e377b3e33dcc
+  B6: fdbe06021d214e3366bbed966afd667c05b6898d6a4a00dec530d0dccba433d9
+  B7: 514216ed4d768d00da4a7d68b6a68486b3160dbc527504e50c8ea68b72c29c38
+  B8: 35afdf5d4523de2e082d35db7e212589e1074ddf15148a5f272fad248196d5b4
+  A8: b8b8b4d3d8bc72c392ae12549312ff38551bce7f62becf2048e1472615e278b0
+  C10: cc046ce197f31616e732c539e27d37b2a11219b1c0cbf5e22e0421662da89351
+  C11: 4ae191d3bff9fa0f3052a677210defbc3ca541fa78d6dca97b222970c7c06de3
+  C12: 94781108221ce708ee7a5a859c646184dbb1aff90d765610a81b791f4499ea5a
+metadefinition_ast_sha256:
+  DEF_OR: 9d742a9f20dac313a68341c3920a545872b76e3f89a19ee864786265627d86fd
+  DEF_STRICT_IMP: 032d792b9a2086aeff72a31fddb9cdb46372a8736a77f74a673c982a7f73dab9
+  DEF_EQUIV_S: 987188f3a75732729d0db2d39a3fc1ea1edaca3ad1aed5ebf051a319d5a7ffde

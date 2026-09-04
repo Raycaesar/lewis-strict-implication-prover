@@ -1,28 +1,27 @@
 # Architecture
+## M0.3 candidate
 
-## 1. Layered design
-
-The project is divided into five logical layers:
+## 1. Trust layering
 
 ```text
 historical sources
       ↓
-normalized spec
+normalized M0 specification
       ↓
-trusted kernel
+trusted M1 kernel
       ↓
-untrusted proof search
+untrusted proof library/search
       ↓
-rendering / UI
+renderer / UI
 ```
 
-The direction of trust is one-way: later layers may depend on earlier layers, but they may not redefine them.
+Later layers may depend on earlier layers but may not redefine them.
 
 ---
 
-## 2. Layer A — normalized specification
+## 2. Normalized specification
 
-Files:
+The executable M0 source of truth is:
 
 ```text
 spec/language.yaml
@@ -31,157 +30,195 @@ spec/schemas.yaml
 spec/systems.yaml
 ```
 
-Responsibilities:
+The certificate contract is jointly fixed by:
 
-- define legal formula constructors;
-- define parser-level notation;
-- define primitive rule contracts;
-- define primitive axiom schemas;
-- define normalized S1–S5 bases;
-- distinguish primitive, defined, and derived material.
+```text
+spec/rules.yaml
+spec/systems.yaml
+docs/PROOF_CERTIFICATE_SPEC.md
+```
 
-No code-level hard-coded duplicate of the calculus should become an independent source of truth.
+If these disagree, implementation must stop rather than guess.
 
 ---
 
-## 3. Layer B — trusted kernel
+## 3. Trusted-kernel boundary
 
-Provisional future package:
+The future kernel is intentionally small.
+
+It verifies:
+
+- object formula AST validity;
+- system/basis identity;
+- primitive postulate-schema instantiation;
+- `Sa`;
+- `Sb`;
+- `Ad`;
+- `Smp`;
+- explicit `definition_conversion`;
+- occurrence paths;
+- proof-DAG integrity;
+- exact root/goal identity.
+
+The kernel does **not** search for proofs.
+
+### 3.1 Exact surface identity
+
+Primitive Lewis rule checks operate on the visible surface AST.
+
+The kernel must never silently expand `or`, `strict_imp`, or `equiv_s` to make
+a rule application succeed.
+
+### 3.2 Definition conversion
+
+Definition expansion/contraction is represented only by the explicit trusted
+certificate kind:
+
+```text
+definition_conversion
+```
+
+It is a checked metalinguistic conversion, not a fifth Lewis inference rule.
+
+### 3.3 Full erasure
+
+A deterministic full-erasure utility may recursively expand definitions into
+`atom/neg/and/poss` for:
+
+- conservativity diagnostics;
+- regression checking;
+- fully erased rendering.
+
+It is not part of primitive-rule matching.
+
+---
+
+## 4. Future kernel package
+
+Provisional M1 structure:
 
 ```text
 src/lewis_prover/kernel/
 ├── ast.py
+├── spec_loader.py
+├── basis.py
 ├── schema.py
 ├── substitution.py
-├── replacement.py
+├── occurrence_path.py
+├── definitions.py
 ├── rules.py
 ├── certificate.py
 └── checker.py
 ```
 
-The kernel should be small enough to audit line by line.
+Implementation order after M0 certification:
 
-### Kernel responsibilities
+1. AST and spec loader;
+2. basis resolution;
+3. schema metavariable instantiation;
+4. object-level `Sa`;
+5. occurrence paths;
+6. `definition_conversion`;
+7. `Sb`;
+8. `Ad`;
+9. `Smp`;
+10. DAG checker;
+11. deterministic proof linearizer.
 
-- validate formula ASTs;
-- check schema instantiation;
-- check substitution maps;
-- check replacement-of-equivalents paths;
-- check adjunction;
-- check strict detachment;
-- validate DAG dependencies;
-- validate the system in which a primitive schema is available;
-- optionally expand/check definitions under a frozen definition policy.
-
-### Kernel non-responsibilities
-
-- deciding which lemma might be useful;
-- theorem ranking;
-- forward saturation;
-- backward proof planning;
-- semantic validity;
-- UI formatting.
+No proof search before these are audited by tests.
 
 ---
 
-## 4. Layer C — proof library
+## 5. Basis discipline
 
-Provisional future package/data:
+Every proof declares:
+
+```text
+system
+basis_id
+```
+
+Allowed basis IDs are defined in `spec/systems.yaml`.
+
+S5 has two separate bases:
+
+```text
+S5_PRIMARY_B1_B7_C11
+S5_ALT_B1_B7_C10_C12
+```
+
+The kernel may never use their union.
+
+A future bridge proof declares:
+
+```text
+source_basis_id
+target_basis_id
+```
+
+and must expand into a certificate valid in the target basis.
+
+---
+
+## 6. Proof library
+
+Future checked data:
 
 ```text
 proofs/
+├── historical/
 ├── derived/
-├── bridges/
-└── historical/
+└── bridges/
 ```
 
-Every stored proof must be kernel-checkable.
+A stored theorem or macro is untrusted until its expansion is checked.
 
-A derived macro is an optimization, not a new rule.
+Citation, historical theorem number, or theorem inclusion does not create a
+kernel primitive.
 
 ---
 
-## 5. Layer D — untrusted search
+## 7. Untrusted search
 
-Provisional future package:
+Future search may use:
 
-```text
-src/lewis_prover/search/
-├── lookup.py
-├── forward.py
-├── backward.py
-├── bidirectional.py
-├── ranking.py
-└── bounds.py
-```
+- exact theorem lookup;
+- schema-directed generation;
+- bounded forward saturation;
+- backward macro matching;
+- bidirectional search;
+- best-first ranking;
+- semantic pruning;
+- external tools or learned heuristics.
 
-Candidate strategies:
+All such mechanisms are outside the trusted boundary.
 
-1. exact theorem lookup;
-2. schema-instance recognition;
-3. bounded forward saturation;
-4. backward matching against certified macros;
-5. bidirectional meet-in-the-middle search;
-6. best-first/A*-style search using syntactic cost;
-7. theorem-library reuse;
-8. system-bridge reuse where certified.
-
-Every candidate proof is sent to the kernel.
+The only route to `PROVED` is kernel acceptance of the resulting native
+certificate.
 
 ---
 
-## 6. Layer E — rendering and UI
+## 8. Rendering
 
-Provisional future package:
+Ordinary Lewis-style proof rendering preserves:
 
-```text
-src/lewis_prover/render/
-src/lewis_prover/cli/
-src/lewis_prover/web/
-```
+- the fishhook;
+- `equiv_s`;
+- explicit `Df` lines when visible definition conversion occurs.
 
-The UI should eventually support:
+Two independent display options may exist:
 
-- system selection S1–S5;
-- formula input;
-- proof request;
-- concise proof;
-- primitive-only expansion;
-- exact line justifications;
-- system/provenance display;
-- optional least-system report once certified searches support it.
+1. **primitive proof operations** — expands derived/bridge macros but preserves
+   defined surface notation;
+2. **fully erased formulas** — diagnostic expansion of all definitions.
 
-Rendering must preserve the strict-implication fishhook and `equiv_s` convention.
+These options must not be conflated.
 
 ---
 
-## 7. Data flow
+## 9. Search status
 
-```text
-user input
-   ↓
-parser
-   ↓
-formula AST
-   ↓
-searcher produces candidate proof DAG
-   ↓
-trusted checker
-   ↓
-verified proof DAG
-   ↓
-deterministic linearization
-   ↓
-Hilbert-style proof output
-```
-
-The searcher must never return a user-visible `PROVED` result before checker acceptance.
-
----
-
-## 8. Proof statuses
-
-Recommended API statuses:
+Before a separately certified decision procedure:
 
 ```text
 PROVED
@@ -192,49 +229,20 @@ UNSUPPORTED_SYSTEM
 INTERNAL_ERROR
 ```
 
-Reserve `NOT_A_THEOREM` for a future certified decision procedure or independently justified refutation mechanism.
+Search exhaustion never means `NOT_A_THEOREM`.
 
 ---
 
-## 9. Formula identity
+## 10. Change control
 
-The kernel should compare formulas structurally, not by pretty-printed text.
+Changes to any of the following are foundational:
 
-Renderer differences must not affect theorem identity.
+- formula constructors;
+- definition ASTs or conversion semantics;
+- primitive postulate ASTs;
+- primitive Lewis rules;
+- certificate kinds or payload semantics;
+- occurrence-path grammar;
+- basis IDs or primitive-basis membership.
 
-Schema metavariables are separate node/types from object-language proposition letters.
-
----
-
-## 10. Search cost
-
-A later searcher may optimize a cost such as:
-
-```text
-proof_lines
-+ weighted_dependency_depth
-+ weighted_formula_size
-+ weighted_substitution_complexity
-+ weighted_macro_expansion_cost
-```
-
-The exact ranking function is untrusted and may evolve freely without changing logical correctness.
-
----
-
-## 11. Minimal implementation order
-
-When M1 begins:
-
-1. AST;
-2. YAML spec loader;
-3. structural parser-independent schema matcher;
-4. `Sa`;
-5. `Ad`;
-6. `Smp`;
-7. `equiv_s` and `Sb`;
-8. proof-DAG certificate loader;
-9. checker;
-10. deterministic proof renderer.
-
-Only then begin proof search.
+Such changes require specification revision and focused foundational re-audit.

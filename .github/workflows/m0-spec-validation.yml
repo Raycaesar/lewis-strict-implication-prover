@@ -3,6 +3,10 @@ name: M0 spec validation
 on:
   push:
     paths:
+      - "AGENTS.md"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "docs/**"
       - "spec/**"
       - "audit/m0/**"
       - "scripts/**"
@@ -12,6 +16,10 @@ on:
       - ".github/workflows/m0-spec-validation.yml"
   pull_request:
     paths:
+      - "AGENTS.md"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "docs/**"
       - "spec/**"
       - "audit/m0/**"
       - "scripts/**"
@@ -40,11 +48,25 @@ jobs:
       - name: Install validation dependencies
         run: python -m pip install -e ".[dev]"
 
+      - name: Reject tracked Windows metadata streams
+        run: |
+          if [ -n "$(git ls-files '*:Zone.Identifier')" ]; then
+            echo "Tracked Zone.Identifier files found:"
+            git ls-files '*:Zone.Identifier'
+            exit 1
+          fi
+
       - name: Validate executable M0 specification
         run: python scripts/validate_spec.py
 
       - name: Validate M0 source register
         run: python scripts/validate_source_register.py
+
+      - name: Validate M0.3 spec freeze readiness
+        run: python scripts/validate_spec.py --freeze
+
+      - name: Validate M0.3 source/audit freeze readiness
+        run: python scripts/validate_source_register.py --freeze
 
       - name: Run M0 validation tests
         run: pytest

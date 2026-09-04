@@ -1,231 +1,281 @@
-register_version: "0.2"
+register_version: '0.3'
 project: lewis-strict-implication-prover
 stage: M0
 freeze_allowed_with_open_blockers: false
-
 obligations:
   M0-L01:
     category: language
-    title: "Primitive/core language mapping"
-    requirement: "Verify the project mapping of proposition letters, negation, product, possibility, and strict-equivalence notation against L&L pp. 123-124."
+    title: Primitive/core language mapping
+    requirement: Verify the project mapping of proposition letters, negation, product, possibility, and strict-equivalence
+      notation against L&L pp. 123-124.
     status: source_verified
-    evidence: ["LL1932 p. 123", "LL1932 p. 124"]
-
+    evidence:
+    - LL1932 p. 123
+    - LL1932 p. 124
   M0-D01:
     category: definitions
-    title: "Disjunction definition"
-    requirement: "Verify DEF_OR against 11.01."
+    title: Disjunction definition
+    requirement: Verify DEF_OR against 11.01.
     status: source_verified
-    evidence: ["LL1932 p. 123, 11.01"]
-
+    evidence:
+    - LL1932 p. 123, 11.01
   M0-D02:
     category: definitions
-    title: "Strict implication definition"
-    requirement: "Verify the fishhook definition against 11.02 and preserve fishhook surface notation."
+    title: Strict implication definition
+    requirement: Verify the fishhook definition against 11.02 and preserve fishhook surface notation.
     status: source_verified
-    evidence: ["LL1932 p. 124, 11.02"]
-
+    evidence:
+    - LL1932 p. 124, 11.02
   M0-D03:
     category: definitions
-    title: "Strict equivalence normalization"
-    requirement: "Resolve the kernel status of equiv_s given that L&L list logical equivalence as primitive on p. 123 but give 11.03 on p. 124. Specify exactly how definition expansion/contraction interacts with Sb."
-    status: blocked
+    title: Strict equivalence normalization
+    requirement: Resolve the kernel status of equiv_s given that L&L list logical equivalence as primitive on p.
+      123 but give 11.03 on p. 124. Specify exactly how definition expansion/contraction interacts with Sb.
+    status: repair_implemented_reaudit_pending
     severity: P0_M0_FREEZE_BLOCKER
-    evidence: ["LL1932 pp. 123-124, 11.03"]
+    evidence:
+    - LL1932 pp. 123-124, 11.03
     proposed_resolution:
-      - "Keep equiv_s as a first-class object-language surface node distinct from metalanguage '='."
-      - "Treat 11.03 as trusted definitional conversion, not as an additional logical inference rule."
-      - "Require the M1 certificate format to record any definition conversion that changes the visible proof line."
-
+    - Keep equiv_s as a first-class object-language surface node distinct from metalanguage '='.
+    - Treat 11.03 as trusted definitional conversion, not as an additional logical inference rule.
+    - Require the M1 certificate format to record any definition conversion that changes the visible proof line.
+    resolution_v0_3: equiv_s is a first-class surface object-language node; visible 11.03 expansion/contraction
+      uses explicit definition_conversion; all Lewis rules match exact surface ASTs.
   M0-D04:
     category: definitions
-    title: "Deterministic definition conversion policy"
-    requirement: "Replace the current permissive phrase 'the kernel may elaborate' by a deterministic policy for or, strict_imp, and equiv_s."
-    status: blocked
+    title: Deterministic definition conversion policy
+    requirement: Replace the current permissive phrase 'the kernel may elaborate' by a deterministic policy for
+      or, strict_imp, and equiv_s.
+    status: repair_implemented_reaudit_pending
     severity: P0_M0_FREEZE_BLOCKER
     proposed_resolution:
-      - "Surface proof formulas retain defined connectives."
-      - "Rule applications check declared surface structure."
-      - "Definition expansion/contraction is a separately checked metalinguistic conversion, never an unrecorded proof search step."
-
+    - Surface proof formulas retain defined connectives.
+    - Rule applications check declared surface structure.
+    - Definition expansion/contraction is a separately checked metalinguistic conversion, never an unrecorded proof
+      search step.
+    resolution_v0_3: spec/language.yaml now forbids implicit definition conversion and defines deterministic full
+      erasure as diagnostic only.
   M0-R01:
     category: rules
-    title: "Rule provenance and labels"
-    requirement: "Distinguish project labels Sa/Sb/Ad/Smp from L&L's historical headings and clauses."
-    status: repair_needed
+    title: Rule provenance and labels
+    requirement: Distinguish project labels Sa/Sb/Ad/Smp from L&L's historical headings and clauses.
+    status: source_verified
     severity: P1
     evidence:
-      - "LL1932 p. 125: Substitution clauses (a) and (b)"
-      - "LL1932 p. 126: Adjunction and Inference"
-      - "Feys 30.21-30.24"
-
+    - 'LL1932 p. 125: Substitution clauses (a) and (b)'
+    - 'LL1932 p. 126: Adjunction and Inference'
+    - Feys 30.21-30.24
+    resolution_v0_3: Sa/Sb/Ad/Smp are consistently identified as project labels with exact L&L provenance.
   M0-R02:
     category: rules
-    title: "Uniform substitution contract"
-    requirement: "Verify whole-formula uniformity and theorem-mode restriction."
+    title: Uniform substitution contract
+    requirement: Verify whole-formula uniformity and theorem-mode restriction.
     status: source_verified
-    evidence: ["LL1932 p. 125, Substitution (b)"]
-
+    evidence:
+    - LL1932 p. 125, Substitution (b)
   M0-R03:
     category: rules
-    title: "Replacement of strict equivalents contract"
-    requirement: "Verify bidirectional replacement and target-theorem discipline; define occurrence-path checking without strengthening the historical operation."
+    title: Replacement of strict equivalents contract
+    requirement: Verify bidirectional replacement and target-theorem discipline; define occurrence-path checking
+      without strengthening the historical operation.
     status: source_verified
-    evidence: ["LL1932 p. 125, Substitution (a)", "Feys 30.24"]
-
+    evidence:
+    - LL1932 p. 125, Substitution (a)
+    - Feys 30.24
   M0-R04:
     category: rules
-    title: "Adjunction"
-    requirement: "Verify exact two-premise operation."
+    title: Adjunction
+    requirement: Verify exact two-premise operation.
     status: source_verified
-    evidence: ["LL1932 p. 126"]
-
+    evidence:
+    - LL1932 p. 126
   M0-R05:
     category: rules
-    title: "Inference / strict detachment"
-    requirement: "Verify that the rule is from p and p fishhook q to q, distinct from B7."
+    title: Inference / strict detachment
+    requirement: Verify that the rule is from p and p fishhook q to q, distinct from B7.
     status: source_verified
-    evidence: ["LL1932 p. 126"]
-
+    evidence:
+    - LL1932 p. 126
   M0-A01:
     category: schemas
-    title: "B1-B7 source transcription"
-    requirement: "Audit every AST parenthesis and connective against Chapter VI and Appendix II."
+    title: B1-B7 source transcription
+    requirement: Audit every AST parenthesis and connective against Chapter VI and Appendix II.
     status: source_verified
-    evidence: ["LL1932 pp. 124-125", "LL1932 p. 493"]
-
+    evidence:
+    - LL1932 pp. 124-125
+    - LL1932 p. 493
   M0-A02:
     category: schemas
-    title: "B8 source transcription"
-    requirement: "Audit B8 against Appendix II and Chapter VI 19.01."
+    title: B8 source transcription
+    requirement: Audit B8 against Appendix II and Chapter VI 19.01.
     status: source_verified
-    evidence: ["LL1932 p. 493", "Parry 1939 p. 137"]
-
+    evidence:
+    - LL1932 p. 493
+    - Parry 1939 p. 137
   M0-A03:
     category: schemas
-    title: "A8 source transcription"
-    requirement: "Audit A8 punctuation and nesting against Appendix II."
+    title: A8 source transcription
+    requirement: Audit A8 punctuation and nesting against Appendix II.
     status: source_verified
-    evidence: ["LL1932 p. 493"]
-
+    evidence:
+    - LL1932 p. 493
   M0-A04:
     category: schemas
-    title: "C10 source transcription"
-    requirement: "Audit the native diamond/negation form without introducing Box."
+    title: C10 source transcription
+    requirement: Audit the native diamond/negation form without introducing Box.
     status: source_verified
-    evidence: ["LL1932 p. 497"]
-
+    evidence:
+    - LL1932 p. 497
   M0-A05:
     category: schemas
-    title: "C11 source transcription"
-    requirement: "Audit the native diamond/negation form without introducing Box."
+    title: C11 source transcription
+    requirement: Audit the native diamond/negation form without introducing Box.
     status: source_verified
-    evidence: ["LL1932 p. 497"]
-
+    evidence:
+    - LL1932 p. 497
   M0-A06:
     category: schemas
-    title: "C12 source transcription"
-    requirement: "Audit the native diamond/negation form without introducing Box."
+    title: C12 source transcription
+    requirement: Audit the native diamond/negation form without introducing Box.
     status: source_verified
-    evidence: ["LL1932 p. 497"]
-
+    evidence:
+    - LL1932 p. 497
   M0-N01:
     category: normalization
-    title: "A-series nonduplication wording"
-    requirement: "Do not claim A1-A6 are formula-for-formula duplicates of B1-B6. A2 and A4 are not literal duplicates. State instead that separate executable copies are unnecessary because the normalized S1 basis recovers the A-series principles needed for S3."
-    status: repair_needed
+    title: A-series nonduplication wording
+    requirement: Do not claim A1-A6 are formula-for-formula duplicates of B1-B6. A2 and A4 are not literal duplicates.
+      State instead that separate executable copies are unnecessary because the normalized S1 basis recovers the
+      A-series principles needed for S3.
+    status: source_verified
     severity: P1
-    evidence: ["LL1932 p. 493", "Parry 1939 pp. 137-138"]
-
+    evidence:
+    - LL1932 p. 493
+    - Parry 1939 pp. 137-138
+    resolution_v0_3: A-series wording is precise; A2/A4/A7 are nonliteral S1 consequences and no duplicate executable
+      list is claimed.
   M0-N02:
     category: normalization
-    title: "S3 normalized basis"
-    requirement: "Justify S3 = normalized S1 + A8 without conflating it with the literal L&L A1-A8 presentation."
+    title: S3 normalized basis
+    requirement: Justify S3 = normalized S1 + A8 without conflating it with the literal L&L A1-A8 presentation.
     status: source_supported
     evidence:
-      - "LL1932 p. 500"
-      - "Parry 1939 pp. 137-138"
+    - LL1932 p. 500
+    - Parry 1939 pp. 137-138
     machine_certificate: pending
-
   M0-S01:
     category: systems
-    title: "S1 basis"
-    requirement: "B1-B7."
-    status: source_verified
-    evidence: ["LL1932 p. 500"]
-
-  M0-S02:
-    category: systems
-    title: "S2 basis"
-    requirement: "B1-B8."
-    status: source_verified
-    evidence: ["LL1932 p. 500"]
-
-  M0-S03:
-    category: systems
-    title: "S4 basis"
-    requirement: "B1-B7 + C10."
-    status: source_verified
-    evidence: ["LL1932 p. 501"]
-
-  M0-S04:
-    category: systems
-    title: "S5 primary and alternative bases"
-    requirement: "B1-B7 + C11, or B1-B7 + C10 + C12."
-    status: source_verified
-    evidence: ["LL1932 p. 501"]
-
-  M0-B01:
-    category: bridges
-    title: "S4 contains S3"
-    requirement: "Do not implement by blind primitive-basis inheritance; future library requires native target-system certificates."
-    status: source_verified
-    evidence: ["LL1932 p. 501"]
-    machine_certificate: pending
-
-  M0-B02:
-    category: bridges
-    title: "S5 basis equivalence"
-    requirement: "Machine-certify both directions needed by the prover's alternative-basis interface."
+    title: S1 basis
+    requirement: B1-B7.
     status: source_verified
     evidence:
-      - "LL1932 p. 498 items (12)-(14)"
-      - "LL1932 pp. 499, 501"
+    - LL1932 p. 500
+  M0-S02:
+    category: systems
+    title: S2 basis
+    requirement: B1-B8.
+    status: source_verified
+    evidence:
+    - LL1932 p. 500
+  M0-S03:
+    category: systems
+    title: S4 basis
+    requirement: B1-B7 + C10.
+    status: source_verified
+    evidence:
+    - LL1932 p. 501
+  M0-S04:
+    category: systems
+    title: S5 primary and alternative bases
+    requirement: B1-B7 + C11, or B1-B7 + C10 + C12.
+    status: source_verified
+    evidence:
+    - LL1932 p. 501
+  M0-B01:
+    category: bridges
+    title: S4 contains S3
+    requirement: Do not implement by blind primitive-basis inheritance; future library requires native target-system
+      certificates.
+    status: source_verified
+    evidence:
+    - LL1932 p. 501
     machine_certificate: pending
-
+  M0-B02:
+    category: bridges
+    title: S5 basis equivalence
+    requirement: Machine-certify both directions needed by the prover's alternative-basis interface.
+    status: source_verified
+    evidence:
+    - LL1932 p. 498 items (12)-(14)
+    - LL1932 pp. 499, 501
+    machine_certificate: pending
   M0-E01:
     category: exclusions
-    title: "B9 excluded from M0"
-    requirement: "Keep propositional-existence machinery outside the initial core."
+    title: B9 excluded from M0
+    requirement: Keep propositional-existence machinery outside the initial core.
     status: source_verified
-    evidence: ["LL1932 pp. 493, 500-501"]
-
+    evidence:
+    - LL1932 pp. 493, 500-501
   M0-C01:
     category: certificate
-    title: "Definition conversion certificate"
-    requirement: "Decide whether visible 'by definition' transformations are represented as explicit non-rule conversion nodes. The checker must not silently change displayed formulas."
-    status: blocked
+    title: Definition conversion certificate
+    requirement: Decide whether visible 'by definition' transformations are represented as explicit non-rule conversion
+      nodes. The checker must not silently change displayed formulas.
+    status: repair_implemented_reaudit_pending
     severity: P0_M0_FREEZE_BLOCKER
-    dependencies: [M0-D03, M0-D04]
-
+    dependencies:
+    - M0-D03
+    - M0-D04
+    resolution_v0_3: definition_conversion is now a normative trusted metalinguistic certificate kind with exact
+      fields and one-occurrence semantics.
   M0-C02:
     category: certificate
-    title: "Postulate instance semantics"
-    requirement: "Distinguish a registered schema instance from a separate Sa proof line while preserving the ability to render explicit substitution when desired."
-    status: open
+    title: Postulate instance semantics
+    requirement: Distinguish a registered schema instance from a separate Sa proof line while preserving the ability
+      to render explicit substitution when desired.
+    status: repair_implemented_reaudit_pending
     severity: P1
-
+    resolution_v0_3: postulate_instance is parentless schema-metavariable instantiation; Sa is one-parent simultaneous
+      object-atom substitution only.
   M0-C03:
     category: certificate
-    title: "Sb occurrence paths"
-    requirement: "Specify a stable structural path grammar and check one explicit occurrence per primitive Sb step."
-    status: open
+    title: Sb occurrence paths
+    requirement: Specify a stable structural path grammar and check one explicit occurrence per primitive Sb step.
+    status: repair_implemented_reaudit_pending
     severity: P1
-
+    resolution_v0_3: one list-valued occurrence path grammar []/[arg]/[left]/[right]/... is normative for Sb and
+      definition_conversion.
+  M0-C04:
+    category: certificate
+    title: S5 basis identity
+    requirement: Every proof declares a stable basis_id; S5 primary and alternative bases are never unioned.
+    status: repair_implemented_reaudit_pending
+    severity: P1_REPAIR_FROM_2026_09_04_AUDIT
+    resolution_v0_3: systems.yaml defines S5_PRIMARY_B1_B7_C11 and S5_ALT_B1_B7_C10_C12; proof metadata requires
+      basis_id and postulate admission is basis-specific.
+  M0-V01:
+    category: validation
+    title: Freeze-readiness gate
+    requirement: Candidate readiness must reject structural drift, audited-AST drift, and unresolved P0/P1 statuses.
+    status: repair_implemented_reaudit_pending
+    severity: P2_REPAIR_FROM_2026_09_04_AUDIT
+    resolution_v0_3: validate_spec.py --freeze checks M0.3 invariants/fingerprints; validate_source_register.py
+      --freeze checks obligation readiness.
+  M0-CI01:
+    category: validation
+    title: CI governing-file coverage
+    requirement: Changes to docs/**, AGENTS.md, README.md, spec/**, audit/m0/**, scripts/**, and tests/spec/** trigger
+      M0 CI.
+    status: repair_implemented_reaudit_pending
+    severity: P2_REPAIR_FROM_2026_09_04_AUDIT
+  M0-H01:
+    category: repository_hygiene
+    title: Tracked Zone.Identifier cleanup
+    requirement: No tracked *:Zone.Identifier files remain in the exact closure-audit candidate.
+    status: repair_implemented_reaudit_pending
+    severity: P2_REPAIR_FROM_2026_09_04_AUDIT
+    note: Run scripts/apply_m0_v0_3_cleanup.sh in the real repository and verify with git ls-files.
 summary:
-  source_verified: 20
-  source_supported: 1
-  repair_needed: 2
-  blocked: 3
-  open: 2
-  note: "Counts are advisory; the validator recomputes register integrity but not this summary."
+  policy: computed_by_validate_source_register
+  closure_note: No status may remain blocked/open/repair_needed for closure-audit readiness. repair_implemented_reaudit_pending
+    means the repair exists but is not independently certified yet.
+candidate_state: repair_implemented_reaudit_pending

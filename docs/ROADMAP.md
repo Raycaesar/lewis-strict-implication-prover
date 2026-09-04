@@ -8,7 +8,7 @@ Search may use sophisticated modern algorithms, but every accepted proof must co
 
 # M0 — Specification normalization
 
-Current stage.
+Current stage: **M0.3 closure-audit candidate**.
 
 ### Deliverables
 
@@ -169,3 +169,30 @@ Possible later work:
 - B9/existence extensions;
 - alternative historically certified presentations;
 - web playground.
+
+
+---
+
+# M0.3 — Foundational certificate repair
+
+The first Work Max audit of commit
+`4931e4daa124587a789ac27b841f499295facf5e` passed the formula/system layer but
+did not certify the trusted certificate boundary.
+
+M0.3 repairs:
+
+- [x] deterministic explicit `definition_conversion`;
+- [x] exact surface-AST rule matching;
+- [x] strict separation of `postulate_instance` from object-level `Sa`;
+- [x] one normative occurrence-path grammar;
+- [x] stable basis IDs, including separate S5 primary/alternative bases;
+- [x] source/provenance qualification for Parry and L&L p. 498;
+- [x] audited AST fingerprint lock;
+- [x] freeze-readiness validator mode;
+- [x] CI coverage for governing docs/AGENTS;
+- [x] Windows metadata cleanup tooling;
+- [ ] exact candidate commit uploaded and CI green;
+- [ ] focused Work Max closure recheck;
+- [ ] `M0 FOUNDATIONAL SPECIFICATION CERTIFIED`.
+
+M1 remains forbidden until the final item is achieved.

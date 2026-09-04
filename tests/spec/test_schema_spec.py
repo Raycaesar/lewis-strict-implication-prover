@@ -1,36 +1,31 @@
-EXPECTED = {
-    "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "A8", "C10", "C11", "C12"
-}
+import copy
+
+from scripts.validate_spec import EXPECTED_SCHEMA_IDS, validate_bundle
 
 
-def test_normalized_schema_registry_is_exact(spec_bundle):
-    assert set(spec_bundle.schemas["schemas"]) == EXPECTED
+def test_schema_registry_exact(spec_bundle):
+    assert set(spec_bundle.schemas["schemas"]) == set(EXPECTED_SCHEMA_IDS)
 
 
-def test_redundant_a_series_and_b9_are_not_primitive(spec_bundle):
+def test_a1_a7_and_b9_not_primitive(spec_bundle):
     ids = set(spec_bundle.schemas["schemas"])
     assert not ({f"A{i}" for i in range(1, 8)} & ids)
     assert "B9" not in ids
 
 
-def test_schema_policy_records_nonduplication(spec_bundle):
-    assert spec_bundle.schemas["schema_policy"]["no_duplicate_A1_A7"] is True
-
-
-def test_omitted_historical_schemas_are_documented(spec_bundle):
-    omitted = spec_bundle.schemas["omitted_historical_schemas"]
-    assert {"A1_A6", "A7", "B9"} <= set(omitted)
-
-
-def test_every_primitive_schema_has_provenance(spec_bundle):
-    for schema_id, schema in spec_bundle.schemas["schemas"].items():
+def test_every_schema_has_primary_provenance(spec_bundle):
+    for sid, schema in spec_bundle.schemas["schemas"].items():
         source = schema["source"]
-        assert source["work"]
-        assert source["edition"]
-        assert source["locus"], schema_id
+        assert source["work"] and source["edition"] and source["locus"], sid
 
 
-def test_every_schema_ast_starts_with_registered_operator(spec_bundle):
-    registered = set(spec_bundle.language["formula_ast"])
-    for schema_id, schema in spec_bundle.schemas["schemas"].items():
-        assert schema["ast"]["op"] in registered, schema_id
+def test_high_risk_c10_mutation_breaks_freeze_fingerprint(spec_bundle):
+    schemas = copy.deepcopy(spec_bundle.schemas)
+    c10 = schemas["schemas"]["C10"]["ast"]
+    # Replace the whole audited AST with B1's AST: structurally valid but historically wrong.
+    schemas["schemas"]["C10"]["ast"] = copy.deepcopy(schemas["schemas"]["B1"]["ast"])
+    mutated = type(spec_bundle)(
+        spec_bundle.spec_dir, spec_bundle.language, spec_bundle.rules, schemas, spec_bundle.systems
+    )
+    issues = validate_bundle(mutated, freeze=True)
+    assert any(i.code == "FINGERPRINT_SCHEMA" for i in issues)

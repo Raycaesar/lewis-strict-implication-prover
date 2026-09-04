@@ -1,7 +1,7 @@
-spec_version: '0.1'
+spec_version: '0.3'
 component: schemas
 project: lewis-strict-implication-prover
-status: draft_m0
+status: candidate_m0
 notation:
   strict_imp: fishhook / article macro \strictif / Unicode ⥽
   strict_equiv: equiv_s / article macro \strictequiv / Unicode ≡ₛ

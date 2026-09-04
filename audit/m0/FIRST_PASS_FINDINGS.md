@@ -1,3 +1,15 @@
+# Historical snapshot notice
+
+This file records the **pre-audit / pre-M0.3 first-pass state**. It is retained for provenance and is not the current normative repair status.
+
+For current status see:
+
+- `M0_FOUNDATIONAL_AUDIT_2026-09-04.md`
+- `M0_FOUNDATIONAL_REPAIR_LOG_v0.3.md`
+- `foundational_obligations.yaml`
+
+---
+
 # M0 first-pass foundational source findings
 
 **Status:** source pass before Work Max certification  
