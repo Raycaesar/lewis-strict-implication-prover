@@ -1,28 +1,35 @@
 # Lewis S1–S5 Native Syntactic Prover
 
-A source-controlled, machine-checkable theorem prover project for the Lewis systems of strict implication S1–S5.
+Native syntactic proof infrastructure for C. I. Lewis's strict-implication
+systems S1–S5.
 
-> **Search may be modern; every accepted proof must reduce to a certificate licensed by the selected normalized Lewis basis.**
+> **Search may be modern; every accepted theorem must reduce to a certificate
+> licensed by the selected normalized Lewis basis.**
 
 ## Current status
 
-**M0.3 closure-audit candidate.**
+**M0.4 second-closure-audit candidate.**
 
-The first independent foundational audit verified the formula/system layer but did not certify the certificate boundary. M0.3 freezes that boundary before any M1 implementation begins.
+The first closure recheck confirmed the formula/system layer and closed the
+definition-conversion, schema-instantiation/Sa, occurrence-path, and primitive
+S5 basis issues. M0.4 closes the remaining certificate-serialization,
+bridge-direction, provenance, and freeze-gate defects.
 
-No automatic prover implementation is trusted yet.
+M1 implementation is still forbidden until an independent exact-SHA recheck
+returns:
 
-## Canonical source
+```text
+M0 FOUNDATIONAL SPECIFICATION CERTIFIED
+```
 
-C. I. Lewis and C. H. Langford, *Symbolic Logic*, 2nd ed. (1932), using the supplied Dover reprint for page references.
+## Active specification
 
-## Notation
-
-- preserve the Lewis fishhook for strict implication;
-- use `equiv_s` / `\equiv_s`, never object-language `=`;
-- keep metalanguage equality and `:=` separate;
-- do not add Box to M0;
-- exclude B9 from the initial core.
+- `docs/FOUNDATIONAL_SPEC_v0.4.md`
+- `docs/PROOF_CERTIFICATE_SPEC.md`
+- `spec/language.yaml`
+- `spec/rules.yaml`
+- `spec/schemas.yaml`
+- `spec/systems.yaml`
 
 ## Normalized bases
 
@@ -35,9 +42,9 @@ C. I. Lewis and C. H. Langford, *Symbolic Logic*, 2nd ed. (1932), using the supp
 | S5 primary | `S5_PRIMARY_B1_B7_C11` | B1–B7 + C11 |
 | S5 alternative | `S5_ALT_B1_B7_C10_C12` | B1–B7 + C10 + C12 |
 
-The two S5 bases are separate and are never unioned.
-
 ## Trusted certificate kinds
+
+Exactly:
 
 ```text
 postulate_instance
@@ -48,25 +55,8 @@ Smp
 definition_conversion
 ```
 
-Only `Sa`, `Sb`, `Ad`, and `Smp` are Lewis inference operations.
-
-Definition conversion is an explicit checked metalinguistic certificate step, not an additional Lewis rule.
-
-All Lewis primitive-rule matching uses exact surface ASTs.
-
-## Executable M0 specification
-
-```text
-spec/
-├── language.yaml
-├── rules.yaml
-├── schemas.yaml
-└── systems.yaml
-```
-
-Normative certificate semantics: `docs/PROOF_CERTIFICATE_SPEC.md`.
-
-Foundational overview: `docs/FOUNDATIONAL_SPEC_v0.3.md`.
+Certificate objects are closed-world. Unknown logical fields are rejected.
+Node IDs and references are nonempty strings resolved by exact string identity.
 
 ## Validation
 
@@ -76,14 +66,4 @@ python scripts/validate_source_register.py
 python scripts/validate_spec.py --freeze
 python scripts/validate_source_register.py --freeze
 pytest
-```
-
-The `--freeze` modes are candidate-readiness checks. They do not replace the independent Work Max closure audit.
-
-## M1 gate
-
-M1 trusted-kernel implementation is forbidden until the exact M0.3 candidate commit receives:
-
-```text
-M0 FOUNDATIONAL SPECIFICATION CERTIFIED
 ```

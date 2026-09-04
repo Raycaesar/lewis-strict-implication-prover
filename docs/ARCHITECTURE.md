@@ -1,5 +1,5 @@
 # Architecture
-## M0.3 candidate
+## M0.4 second-closure candidate
 
 ## 1. Trust layering
 
@@ -152,8 +152,8 @@ The kernel may never use their union.
 A future bridge proof declares:
 
 ```text
-source_basis_id
-target_basis_id
+from_basis_id
+into_basis_id
 ```
 
 and must expand into a certificate valid in the target basis.
@@ -246,3 +246,8 @@ Changes to any of the following are foundational:
 - basis IDs or primitive-basis membership.
 
 Such changes require specification revision and focused foundational re-audit.
+
+
+## 11. Closed-world serialization
+
+M0.4 certificate objects reject all fields not explicitly allowed by `spec/rules.yaml`. Node IDs and references are nonempty strings resolved by exact string identity.

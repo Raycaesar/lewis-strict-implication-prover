@@ -1,42 +1,29 @@
 # AGENTS.md
 
-## Scope
+## Current milestone
 
-This repository implements a native syntactic prover for Lewis strict-implication systems S1–S5.
+This repository is an **M0.4 second-closure-audit candidate**.
 
-This file is binding on Codex and other coding agents.
+Do not implement M1 until the exact candidate commit is independently certified.
 
-## 1. Current milestone
+## Normative read order
 
-The repository is an **M0.3 closure-audit candidate**.
+1. `docs/FOUNDATIONAL_SPEC_v0.4.md`
+2. `docs/PROOF_CERTIFICATE_SPEC.md`
+3. `docs/SOURCE_POLICY.md`
+4. `spec/language.yaml`
+5. `spec/rules.yaml`
+6. `spec/schemas.yaml`
+7. `spec/systems.yaml`
+8. `audit/m0/source_register.yaml`
+9. `audit/m0/foundational_obligations.yaml`
+10. `audit/m0/M0_FOUNDATIONAL_REPAIR_LOG_v0.4.md`
 
-Do not implement M1 trusted-kernel code until the exact candidate commit has received:
+If these disagree, stop and report the conflict.
 
-```text
-M0 FOUNDATIONAL SPECIFICATION CERTIFIED
-```
+## Trusted boundary
 
-## 2. Source of truth
-
-Before changing logic-sensitive material, read in this order:
-
-1. `docs/FOUNDATIONAL_SPEC_v0.3.md`
-2. `docs/SOURCE_POLICY.md`
-3. `spec/language.yaml`
-4. `spec/rules.yaml`
-5. `spec/schemas.yaml`
-6. `spec/systems.yaml`
-7. `docs/PROOF_CERTIFICATE_SPEC.md`
-8. `docs/ARCHITECTURE.md`
-9. `audit/m0/source_register.yaml`
-10. `audit/m0/foundational_obligations.yaml`
-11. `audit/m0/M0_FOUNDATIONAL_REPAIR_LOG_v0.3.md`
-
-If executable YAML and normative prose disagree, stop and report the conflict. Do not guess.
-
-## 3. Trusted-kernel invariant
-
-Every accepted theorem certificate must reduce to exactly these trusted certificate kinds:
+Only these certificate kinds exist at the kernel boundary:
 
 ```text
 postulate_instance
@@ -49,138 +36,61 @@ definition_conversion
 
 Only `Sa`, `Sb`, `Ad`, and `Smp` are Lewis inference operations.
 
-`definition_conversion` is trusted metalinguistic checking of registered definitions and is **not** a fifth Lewis inference rule.
+All logical certificate objects are closed-world. Unknown fields are rejected.
 
-## 4. Exact surface-AST rule matching
+Node IDs/root/parent references are nonempty strings. Never coerce integers to
+strings or normalize identifiers before reference lookup.
 
-All Lewis primitive rules operate on exact visible/surface ASTs.
+## Definitions
 
-Do not silently expand or contract:
+No Lewis rule silently expands `or`, `strict_imp`, or `equiv_s`.
 
-```text
-or
-strict_imp
-equiv_s
-```
+Visible definitional change requires one explicit `definition_conversion`
+acting at one occurrence with one shared metavariable environment.
 
-to make a rule application succeed.
+## Basis and bridges
 
-Visible definitional change requires an explicit `definition_conversion` node.
-
-## 5. Namespace separation
-
-Never conflate:
-
-- schema metavariables `P,Q,R,...`;
-- object atoms `p,q,r,...`;
-- object-language `equiv_s`;
-- metalanguage structural equality;
-- metalanguage `:=`.
-
-`postulate_instance` maps schema metavariables to object formulas.
-
-`Sa` acts only on object atom names in an already checked theorem.
-
-## 6. Basis discipline
-
-Every proof certificate declares `system` and `basis_id`.
-
-Stable basis IDs:
-
-```text
-S1_B1_B7
-S2_B1_B8
-S3_B1_B7_A8
-S4_B1_B7_C10
-S5_PRIMARY_B1_B7_C11
-S5_ALT_B1_B7_C10_C12
-```
+Every proof declares `basis_id`.
 
 Never union the two S5 bases.
 
-## 7. System invariants
-
-Normalized bases:
+Bridge fields are operational:
 
 ```text
-S1 = B1–B7
-S2 = B1–B8
-S3 = B1–B7 + A8
-S4 = B1–B7 + C10
-S5 primary = B1–B7 + C11
-S5 alternative = B1–B7 + C10 + C12
+from_basis_id
+into_basis_id
 ```
 
-Do not reintroduce A1–A7 as a second executable primitive list.
+The expanded native certificate must have:
 
-Do not claim A1–A6 are all literal copies of B1–B6.
+```text
+basis_id == into_basis_id
+```
 
-A2, A4, and A7 require S1 theorem/bridge treatment.
+For S5:
 
-## 8. Forbidden shortcuts
+```text
+primary -> alternative : recover C11 under the alternative basis
+alternative -> primary : recover C10,C12 under the primary basis
+```
 
-Do not introduce:
+## Forbidden shortcuts
+
+Do not add:
 
 - unrestricted necessitation;
-- Box into the M0 native language;
-- B9 into the initial core;
-- semantic validity as a proof step;
-- tableau/sequent/natural-deduction rules as native proof steps;
-- modern K/T/S4/S5 axioms as replacements for Lewis bases;
+- Box to M0;
+- B9 to M0;
 - object-language `=`;
-- implicit definitional conversion;
-- mixed-basis S5 proof checking.
+- implicit definition conversion;
+- semantic/tableau/sequent proof steps;
+- modern normal-modal axioms as substitutes;
+- mixed-basis S5 checking;
+- unknown-field-tolerant certificate parsing.
 
-## 9. Occurrence paths
+## Formula regression lock
 
-`Sb` and `definition_conversion` use the single logical grammar defined in `spec/rules.yaml`:
+The source-audited schema/definition ASTs are locked by
+`audit/m0/certified_ast_fingerprints.yaml`.
 
-```text
-[]
-[arg]
-[left]
-[right]
-...
-```
-
-Dotted paths are renderer-only.
-
-## 10. Search is untrusted
-
-Future search may be sophisticated, but `PROVED` is emitted only after trusted certificate checking.
-
-Search failure means:
-
-```text
-NO_PROOF_FOUND_WITHIN_CURRENT_BOUNDS
-```
-
-unless a separate decision procedure is certified.
-
-## 11. Formula regression lock
-
-The schema and definition ASTs source-checked by the first foundational audit are locked by:
-
-```text
-audit/m0/certified_ast_fingerprints.yaml
-```
-
-Changing a locked AST is a foundational change requiring source re-audit.
-
-## 12. Testing discipline
-
-Logic-sensitive changes require:
-
-- structural validation;
-- source-register validation;
-- freeze-readiness validation where applicable;
-- positive tests;
-- mutation/rejection tests;
-- exact-basis rejection tests;
-- no tracked `*:Zone.Identifier`.
-
-## 13. Change control
-
-Any change to object language, definition semantics, primitive schema ASTs, primitive Lewis rules, certificate kinds/payloads, occurrence paths, or basis IDs/basis membership requires explicit foundational review.
-
-Do not bundle such changes into ordinary refactors.
+Any AST/hash/lock-metadata edit requires explicit foundational re-audit.

@@ -1,4 +1,4 @@
-spec_version: '0.3'
+spec_version: '0.4'
 component: schemas
 project: lewis-strict-implication-prover
 status: candidate_m0
@@ -17,8 +17,9 @@ schema_policy:
     copies of B1-B6.
   - L&L Appendix II p. 493 shows the A- and B-series side by side; in particular A2 and A4 are not literal copies
     of B2 and B4.
-  - Parry (1939), pp. 137-138, explicitly uses 11.1-11.7 together with 30.1/A8 as postulates for S3 and states how
-    the emended Survey postulates A1-A8 are obtained.
+  - Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and 30.1/A8; 11.5 is supplied
+    by the McKinsey derivation discussed on p. 138. This gives direct syntactic support for the project's unreduced
+    normalized basis B1-B7+A8.
   - A7 is omitted from the primitive schema registry because it is to be certified in the normalized S1 theorem/bridge
     corpus.
   - Only the genuinely additional S3 postulate A8 is retained as a primitive extension schema.
@@ -293,8 +294,9 @@ schemas:
       - 493
       historical_loci:
       - Appendix II A8
-    normalization_note: A8 is retained as the additional primitive schema in the normalized S3 basis. Parry 1939
-      pp. 137-138 directly supports an S3 presentation based on 11.1-11.7 plus 30.1/A8.
+    normalization_note: Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and
+      30.1/A8; 11.5 is supplied by the McKinsey derivation discussed on p. 138. This gives direct syntactic support
+      for the project's unreduced normalized basis B1-B7+A8.
   C10:
     family: C
     role: S4_extension_postulate
@@ -397,7 +399,7 @@ omitted_historical_schemas:
       they are not all literal formula-for-formula duplicates of B1-B6.
   A7:
     historical_display: ∼◇P ⥽ ∼P
-    reason: Not primitive in the normalized prover. Parry 1939 treats A1-7/B1-7 as S1 presentations; a native S1
-      certificate for A7 remains an M2 regression obligation.
+    reason: Not primitive in the normalized prover. Parry 1939 treats A1-7/B1-7 as S1 presentations; a native S1 certificate
+      for A7 remains an M2 regression obligation.
   B9:
     reason: Existence postulate; outside the S1-S5 propositional/modal core requested for M0.

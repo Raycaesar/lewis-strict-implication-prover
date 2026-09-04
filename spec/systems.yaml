@@ -1,4 +1,4 @@
-spec_version: '0.3'
+spec_version: '0.4'
 component: systems
 project: lewis-strict-implication-prover
 status: candidate_m0
@@ -7,10 +7,10 @@ normalization_policy:
   key_decisions:
   - A1-A6 are not stored as separate executable schemas. This is a normalization/derivability decision, not a claim
     that all six are literal copies of B1-B6.
-  - A7 is not stored as a primitive schema; the normalized prover will carry it as a certified S1 theorem/bridge
-    lemma.
-  - S3 is represented by S1 + A8. Parry (1939), pp. 137-138, directly uses 11.1-11.7 plus 30.1/A8 as an S3 postulate
-    set and explains recovery of the emended Survey postulates.
+  - A7 is not stored as a primitive schema; the normalized prover will carry it as a certified S1 theorem/bridge lemma.
+  - Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and 30.1/A8; 11.5 is supplied
+    by the McKinsey derivation discussed on p. 138. This gives direct syntactic support for the project's unreduced
+    normalized basis B1-B7+A8.
   - B9 is excluded from the propositional/modal S1-S5 core.
   - No system enables Box notation or unrestricted necessitation.
 systems:
@@ -70,18 +70,17 @@ systems:
       - Ad
       - Smp
       basis_id: S3_B1_B7_A8
-    historical_basis_note: L&L p. 500 presents S3 by A1-A8. Parry 1939 pp. 137-138 displays a reduced S3 postulate
-      list based on 11.1-11.4, 11.6, 11.7 and 30.1/A8, with 11.5 supplied by McKinsey's derivation. This directly
-      supports the normalized B1-B7+A8 presentation without claiming that Parry literally prints all of 11.1-11.7
-      as primitive.
+    historical_basis_note: L&L p. 500 presents S3 by A1-A8. Parry (1939), pp. 137-138, displays the reduced S3 postulate
+      list 11.1-11.4, 11.6, 11.7 and 30.1/A8; 11.5 is supplied by the McKinsey derivation discussed on p. 138. This
+      gives direct syntactic support for the project's unreduced normalized basis B1-B7+A8.
     normalization_obligations:
     - id: S1_DERIVES_A7
       statement: 'S1 proves A7: ∼◇P ⥽ ∼P.'
       status: source_supported_kernel_pending
       source: Parry 1939 pp. 137-138
     - id: S3_NORMALIZED_BASIS_EQUIVALENCE
-      statement: The normalized basis S1 + A8 generates the same S3 theorem set required by the project as L&L's
-        A1-A8 presentation.
+      statement: The normalized basis S1 + A8 generates the same S3 theorem set required by the project as L&L's A1-A8
+        presentation.
       status: source_supported_kernel_pending
       source: Parry 1939 pp. 137-138
     excluded:
@@ -140,17 +139,24 @@ systems:
       statement: S1 + C10 + C12 proves C11.
       historical_regression: Shen Yuting derivation
       status: to_be_machine_certified
-      source: L&L p. 498 item (14) gives the derivability under that paragraph's stated A1-A8/B1-B9 background;
-        L&L p. 501 canonically states the B1-B7+C10+C12 S5 presentation.
-      source_basis_id: S5_ALT_B1_B7_C10_C12
-      target_basis_id: S5_PRIMARY_B1_B7_C11
+      source: L&L p. 498 item (14) gives the derivability under that paragraph's stated A1-A8/B1-B9 background; L&L
+        p. 501 canonically states the B1-B7+C10+C12 S5 presentation.
+      from_basis_id: S5_PRIMARY_B1_B7_C11
+      into_basis_id: S5_ALT_B1_B7_C10_C12
+      recovered_primitive_schemas:
+      - C11
+      expanded_certificate_basis_id: S5_ALT_B1_B7_C10_C12
     - id: C11_DERIVES_C10_C12
       statement: S1 + C11 proves the C10/C12 presentation required for basis equivalence.
       status: to_be_machine_certified
       source: L&L p. 498 items (12)-(13) give the derivabilities under that paragraph's stated A1-A8/B1-B9 background;
         L&L p. 501 canonically states both B1-B7-based S5 presentations.
-      source_basis_id: S5_PRIMARY_B1_B7_C11
-      target_basis_id: S5_ALT_B1_B7_C10_C12
+      from_basis_id: S5_ALT_B1_B7_C10_C12
+      into_basis_id: S5_PRIMARY_B1_B7_C11
+      recovered_primitive_schemas:
+      - C10
+      - C12
+      expanded_certificate_basis_id: S5_PRIMARY_B1_B7_C11
     excluded:
     - B9
     proof_basis_policy:
@@ -160,8 +166,16 @@ systems:
       - S5_PRIMARY_B1_B7_C11
       - S5_ALT_B1_B7_C10_C12
       union_forbidden: true
-      note: The checker must never admit the union B1-B7+C10+C11+C12 as one primitive basis. Bridge proofs carry
-        explicit source_basis_id and target_basis_id metadata.
+      note: The checker must never admit the union B1-B7+C10+C11+C12 as one primitive basis. Bridge records use from_basis_id/into_basis_id,
+        and the expanded native certificate must declare basis_id equal to into_basis_id.
+    bridge_contract:
+      field_meaning:
+        from_basis_id: Basis of a compact/source proof whose basis-specific primitive(s) may need translation.
+        into_basis_id: Basis in which the expanded native bridge certificate is checked.
+      expansion_requirement: expanded_certificate.basis_id == into_basis_id
+      translation_requirement: The bridge must derive every from-basis primitive not primitive in into_basis_id using
+        only primitives admitted by into_basis_id.
+      field_names_are_operational: true
 theorem_inclusion:
   intended_hierarchy:
   - S1
@@ -170,8 +184,8 @@ theorem_inclusion:
   - S4
   - S5
   trusted_by_kernel_without_bridge: false
-  policy: The search layer may use the hierarchy only after the relevant inclusion is backed by machine-checked
-    bridge certificates. Primitive-basis inheritance and theorem inclusion are distinct relations.
+  policy: The search layer may use the hierarchy only after the relevant inclusion is backed by machine-checked bridge
+    certificates. Primitive-basis inheritance and theorem inclusion are distinct relations.
 extensions_not_in_m0:
   B9_existence:
     enabled: false
@@ -191,8 +205,9 @@ certificate_basis_policy:
     S5:
     - S5_PRIMARY_B1_B7_C11
     - S5_ALT_B1_B7_C10_C12
-  schema_admission: A postulate_instance is accepted only if schema_id belongs to the exact resolved schema set
-    of the declared basis_id.
+  schema_admission: A postulate_instance is accepted only if schema_id belongs to the exact resolved schema set of
+    the declared basis_id.
   bridge_metadata:
-  - source_basis_id
-  - target_basis_id
+  - from_basis_id
+  - into_basis_id
+  bridge_expansion_rule: expanded_certificate.basis_id == into_basis_id

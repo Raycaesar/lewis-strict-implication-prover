@@ -1,4 +1,4 @@
-register_version: '0.3'
+register_version: '0.4'
 project: lewis-strict-implication-prover
 stage: M0
 freeze_allowed_with_open_blockers: false
@@ -29,9 +29,9 @@ obligations:
   M0-D03:
     category: definitions
     title: Strict equivalence normalization
-    requirement: Resolve the kernel status of equiv_s given that L&L list logical equivalence as primitive on p.
-      123 but give 11.03 on p. 124. Specify exactly how definition expansion/contraction interacts with Sb.
-    status: repair_implemented_reaudit_pending
+    requirement: Resolve the kernel status of equiv_s given that L&L list logical equivalence as primitive on p. 123
+      but give 11.03 on p. 124. Specify exactly how definition expansion/contraction interacts with Sb.
+    status: closed
     severity: P0_M0_FREEZE_BLOCKER
     evidence:
     - LL1932 pp. 123-124, 11.03
@@ -39,14 +39,15 @@ obligations:
     - Keep equiv_s as a first-class object-language surface node distinct from metalanguage '='.
     - Treat 11.03 as trusted definitional conversion, not as an additional logical inference rule.
     - Require the M1 certificate format to record any definition conversion that changes the visible proof line.
-    resolution_v0_3: equiv_s is a first-class surface object-language node; visible 11.03 expansion/contraction
-      uses explicit definition_conversion; all Lewis rules match exact surface ASTs.
+    resolution_v0_3: equiv_s is a first-class surface object-language node; visible 11.03 expansion/contraction uses
+      explicit definition_conversion; all Lewis rules match exact surface ASTs.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-D04:
     category: definitions
     title: Deterministic definition conversion policy
-    requirement: Replace the current permissive phrase 'the kernel may elaborate' by a deterministic policy for
-      or, strict_imp, and equiv_s.
-    status: repair_implemented_reaudit_pending
+    requirement: Replace the current permissive phrase 'the kernel may elaborate' by a deterministic policy for or,
+      strict_imp, and equiv_s.
+    status: closed
     severity: P0_M0_FREEZE_BLOCKER
     proposed_resolution:
     - Surface proof formulas retain defined connectives.
@@ -55,6 +56,7 @@ obligations:
       search step.
     resolution_v0_3: spec/language.yaml now forbids implicit definition conversion and defines deterministic full
       erasure as diagnostic only.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-R01:
     category: rules
     title: Rule provenance and labels
@@ -76,8 +78,8 @@ obligations:
   M0-R03:
     category: rules
     title: Replacement of strict equivalents contract
-    requirement: Verify bidirectional replacement and target-theorem discipline; define occurrence-path checking
-      without strengthening the historical operation.
+    requirement: Verify bidirectional replacement and target-theorem discipline; define occurrence-path checking without
+      strengthening the historical operation.
     status: source_verified
     evidence:
     - LL1932 p. 125, Substitution (a)
@@ -144,8 +146,8 @@ obligations:
     category: normalization
     title: A-series nonduplication wording
     requirement: Do not claim A1-A6 are formula-for-formula duplicates of B1-B6. A2 and A4 are not literal duplicates.
-      State instead that separate executable copies are unnecessary because the normalized S1 basis recovers the
-      A-series principles needed for S3.
+      State instead that separate executable copies are unnecessary because the normalized S1 basis recovers the A-series
+      principles needed for S3.
     status: source_verified
     severity: P1
     evidence:
@@ -220,62 +222,116 @@ obligations:
     title: Definition conversion certificate
     requirement: Decide whether visible 'by definition' transformations are represented as explicit non-rule conversion
       nodes. The checker must not silently change displayed formulas.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P0_M0_FREEZE_BLOCKER
     dependencies:
     - M0-D03
     - M0-D04
-    resolution_v0_3: definition_conversion is now a normative trusted metalinguistic certificate kind with exact
-      fields and one-occurrence semantics.
+    resolution_v0_3: definition_conversion is now a normative trusted metalinguistic certificate kind with exact fields
+      and one-occurrence semantics.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-C02:
     category: certificate
     title: Postulate instance semantics
     requirement: Distinguish a registered schema instance from a separate Sa proof line while preserving the ability
       to render explicit substitution when desired.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P1
     resolution_v0_3: postulate_instance is parentless schema-metavariable instantiation; Sa is one-parent simultaneous
       object-atom substitution only.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-C03:
     category: certificate
     title: Sb occurrence paths
     requirement: Specify a stable structural path grammar and check one explicit occurrence per primitive Sb step.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P1
-    resolution_v0_3: one list-valued occurrence path grammar []/[arg]/[left]/[right]/... is normative for Sb and
-      definition_conversion.
+    resolution_v0_3: one list-valued occurrence path grammar []/[arg]/[left]/[right]/... is normative for Sb and definition_conversion.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-C04:
     category: certificate
     title: S5 basis identity
     requirement: Every proof declares a stable basis_id; S5 primary and alternative bases are never unioned.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P1_REPAIR_FROM_2026_09_04_AUDIT
-    resolution_v0_3: systems.yaml defines S5_PRIMARY_B1_B7_C11 and S5_ALT_B1_B7_C10_C12; proof metadata requires
-      basis_id and postulate admission is basis-specific.
+    resolution_v0_3: systems.yaml defines S5_PRIMARY_B1_B7_C11 and S5_ALT_B1_B7_C10_C12; proof metadata requires basis_id
+      and postulate admission is basis-specific.
+    closure_evidence: 'M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04: substantive closure confirmed.'
   M0-V01:
     category: validation
     title: Freeze-readiness gate
     requirement: Candidate readiness must reject structural drift, audited-AST drift, and unresolved P0/P1 statuses.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P2_REPAIR_FROM_2026_09_04_AUDIT
-    resolution_v0_3: validate_spec.py --freeze checks M0.3 invariants/fingerprints; validate_source_register.py
-      --freeze checks obligation readiness.
+    resolution_v0_3: validate_spec.py --freeze checks M0.3 invariants/fingerprints; validate_source_register.py --freeze
+      checks obligation readiness.
+    closure_evidence: M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04 confirmed the corresponding v0.3 CI/repository-hygiene
+      repair; any newly exposed freeze-gate gap is tracked separately by M0-V02.
   M0-CI01:
     category: validation
     title: CI governing-file coverage
     requirement: Changes to docs/**, AGENTS.md, README.md, spec/**, audit/m0/**, scripts/**, and tests/spec/** trigger
       M0 CI.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P2_REPAIR_FROM_2026_09_04_AUDIT
+    closure_evidence: M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04 confirmed the corresponding v0.3 CI/repository-hygiene
+      repair; any newly exposed freeze-gate gap is tracked separately by M0-V02.
   M0-H01:
     category: repository_hygiene
     title: Tracked Zone.Identifier cleanup
     requirement: No tracked *:Zone.Identifier files remain in the exact closure-audit candidate.
-    status: repair_implemented_reaudit_pending
+    status: closed
     severity: P2_REPAIR_FROM_2026_09_04_AUDIT
     note: Run scripts/apply_m0_v0_3_cleanup.sh in the real repository and verify with git ls-files.
+    closure_evidence: M0_FOUNDATIONAL_CLOSURE_RECHECK_2026-09-04 confirmed the corresponding v0.3 CI/repository-hygiene
+      repair; any newly exposed freeze-gate gap is tracked separately by M0-V02.
+  M0-C05:
+    category: certificate
+    title: Closed-world certificate serialization
+    requirement: Every trusted certificate object and justification kind has an exact allowed-field set; unknown fields
+      are rejected; proof/node/reference IDs use nonempty strings with exact string identity.
+    severity: P1_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+    resolution_v0_4: spec/rules.yaml now defines closed-world top-level/node/justification serialization, exact allowed
+      fields, unknown-field rejection, and nonempty-string ID/reference semantics.
+  M0-B03:
+    category: bridges
+    title: Operational S5 bridge direction
+    requirement: Bridge records must unambiguously identify the source proof basis and the basis in which the expanded
+      native certificate checks.
+    severity: P1_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+    resolution_v0_4: Fields renamed to from_basis_id/into_basis_id. C11-under-C10+C12 is primary→alternative; C10/C12-under-C11
+      is alternative→primary; expanded certificate basis_id must equal into_basis_id.
+  M0-P02:
+    category: provenance
+    title: Complete Parry S3 provenance repair
+    requirement: Every active Parry S3 provenance field must use the reduced-list/derived-11.5 wording.
+    severity: P2_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+    resolution_v0_4: All active spec/source-register Parry claims now use the precise reduced-list wording.
+  M0-V02:
+    category: validation
+    title: Freeze-gate semantic contract hardening
+    requirement: Freeze validation must reject mutations of exact schema-map domain, single conversion environment,
+      no-second-conversion, one-occurrence Sb, atom path rejection, bridge orientation, and unknown-field policy.
+    severity: P2_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+    resolution_v0_4: validate_spec.py and mutation tests now check all seven demonstrated counter-mutations.
+  M0-DOC02:
+    category: documentation
+    title: Repair-log parent-field vocabulary
+    requirement: Use the normative one-element parents list, not a singular parent field.
+    severity: P2_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+  M0-FP02:
+    category: validation
+    title: Fingerprint-lock metadata
+    requirement: Freeze validator must check lock version and audited predecessor/nonregression commit metadata.
+    severity: P2_SECOND_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
 summary:
   policy: computed_by_validate_source_register
-  closure_note: No status may remain blocked/open/repair_needed for closure-audit readiness. repair_implemented_reaudit_pending
-    means the repair exists but is not independently certified yet.
-candidate_state: repair_implemented_reaudit_pending
+  closure_note: closed = independently closed by the prior closure recheck; repair_implemented_reaudit_pending = M0.4
+    repair exists but awaits the next independent exact-SHA recheck.
+candidate_state: second_closure_repair_implemented_reaudit_pending

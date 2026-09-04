@@ -133,3 +133,8 @@ presentations:
 - B1–B7 + C10 + C12.
 
 The future bridge library must still provide checked native certificates.
+
+
+## 10. M0.4 Parry wording invariant
+
+Every active M0.4 Parry S3 provenance field must state the reduced list 11.1-11.4, 11.6, 11.7, 30.1/A8 and the McKinsey derivation of 11.5. Shorthand claiming that Parry literally takes all 11.1-11.7 as primitive postulates is forbidden.

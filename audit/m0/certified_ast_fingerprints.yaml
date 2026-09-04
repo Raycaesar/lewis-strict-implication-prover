@@ -1,7 +1,6 @@
-lock_version: '0.1'
-basis_commit_audited: 4931e4daa124587a789ac27b841f499295facf5e
-purpose: Regression lock for formula ASTs and metadefinition ASTs independently source-checked in the 2026-09-04
-  foundational audit. A mismatch is a foundational change requiring source re-audit.
+lock_version: '0.2'
+purpose: Regression lock for formula ASTs and metadefinition ASTs independently source-checked in the 2026-09-04 foundational
+  audit. A mismatch is a foundational change requiring source re-audit.
 schema_ast_sha256:
   B1: edaef093111f3b2815172dc87f459e2acd2f7cacc915d3a6031bbcf37be3f571
   B2: 87e4fe8e7f863a2b1bbe8ee76b9f6685f4030afd163ade3147d73d0011cb4150
@@ -19,3 +18,8 @@ metadefinition_ast_sha256:
   DEF_OR: 9d742a9f20dac313a68341c3920a545872b76e3f89a19ee864786265627d86fd
   DEF_STRICT_IMP: 032d792b9a2086aeff72a31fddb9cdb46372a8736a77f74a673c982a7f73dab9
   DEF_EQUIV_S: 987188f3a75732729d0db2d39a3fc1ea1edaca3ad1aed5ebf051a319d5a7ffde
+formula_source_audit_commit: 4931e4daa124587a789ac27b841f499295facf5e
+formula_nonregression_recheck_commit: 5339a5a4f4c56a5e4feae3cc452730e488a309f1
+change_policy: Any edit to a locked schema/definition AST, any stored hash, lock_version, or audited-commit metadata
+  is a foundational change requiring explicit source re-audit. The validator cannot authenticate a deliberate simultaneous
+  AST+hash edit; human/Work Max review remains mandatory.

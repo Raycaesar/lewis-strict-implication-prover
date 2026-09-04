@@ -1,3 +1,9 @@
+# Historical v0.3 repair record
+
+This file records the superseded M0.3 candidate. Its certificate example uses the normative one-element `parents` list; current bridge semantics and serialization are in M0.4.
+
+---
+
 # M0 Foundational Repair Log v0.3
 
 **Repair basis:** Work Max audit  
@@ -46,7 +52,7 @@ inference rule.
 Every conversion records:
 
 ```text
-parent
+parents: [<node-id>]
 definition_id
 direction
 occurrence_path

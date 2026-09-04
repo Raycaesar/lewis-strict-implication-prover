@@ -8,7 +8,7 @@ Search may use sophisticated modern algorithms, but every accepted proof must co
 
 # M0 — Specification normalization
 
-Current stage: **M0.3 closure-audit candidate**.
+Current stage: **M0.4 second-closure-audit candidate**.
 
 ### Deliverables
 
@@ -196,3 +196,8 @@ M0.3 repairs:
 - [ ] `M0 FOUNDATIONAL SPECIFICATION CERTIFIED`.
 
 M1 remains forbidden until the final item is achieved.
+
+
+# M0.4 — second closure repair
+
+Closes closed-world certificate serialization, operational S5 bridge direction, complete Parry provenance, freeze-gate mutation coverage, repair-log vocabulary, and fingerprint metadata. Awaiting exact-SHA second closure recheck before M1.

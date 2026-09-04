@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import sys
+import yaml
 
 import pytest
 
@@ -12,28 +13,35 @@ from scripts.validate_spec import load_spec_bundle
 
 
 @pytest.fixture(scope="session")
-def repo_root() -> Path:
+def repo_root():
     return REPO_ROOT
 
 
 @pytest.fixture(scope="session")
-def spec_dir(repo_root: Path) -> Path:
+def spec_dir(repo_root):
     return repo_root / "spec"
 
 
 @pytest.fixture(scope="session")
-def spec_bundle(spec_dir: Path):
+def spec_bundle(spec_dir):
     return load_spec_bundle(spec_dir)
 
 
 @pytest.fixture
-def copied_m0(tmp_path, repo_root):
+def copied_candidate(tmp_path, repo_root):
     shutil.copytree(repo_root / "spec", tmp_path / "spec")
-    (tmp_path / "audit/m0").mkdir(parents=True)
-    for name in (
-        "certified_ast_fingerprints.yaml",
-        "source_register.yaml",
-        "foundational_obligations.yaml",
-    ):
-        shutil.copy2(repo_root / "audit/m0" / name, tmp_path / "audit/m0" / name)
+    shutil.copytree(repo_root / "audit/m0", tmp_path / "audit/m0")
+
+    # Freeze-mode source validation checks registered paths. Avoid copying large
+    # PDFs by creating empty fixtures at the exact paths inside this temp repo.
+    reg = yaml.safe_load((tmp_path / "audit/m0/source_register.yaml").read_text(encoding="utf-8"))
+    paths = [reg["canonical_source"]["repository_path"]]
+    for entry in reg.get("secondary_sources", {}).values():
+        if isinstance(entry, dict) and entry.get("repository_path"):
+            paths.append(entry["repository_path"])
+    for rel in paths:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("test fixture placeholder\n", encoding="utf-8")
+
     return tmp_path

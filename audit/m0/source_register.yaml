@@ -1,4 +1,4 @@
-register_version: '0.3'
+register_version: '0.4'
 project: lewis-strict-implication-prover
 stage: M0
 status: candidate_source_audit
@@ -18,9 +18,9 @@ secondary_sources:
     repository_path: Strict_Implication/Parry-1939.pdf
     authority: secondary_syntactic
     use:
-    - Supports the normalized S3 presentation. Parry pp. 137-138 displays a reduced postulate list based on 11.1-11.4,
-      11.6, 11.7 and 30.1/A8; 11.5 is supplied by McKinsey's derivation. Do not say Parry literally prints all 11.1-11.7
-      as primitive.
+    - Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and 30.1/A8; 11.5 is
+      supplied by the McKinsey derivation discussed on p. 138. This gives direct syntactic support for the project's
+      unreduced normalized basis B1-B7+A8.
     - Provides syntactic modal results and later bridge material.
   FEYS:
     author: Robert Feys
@@ -90,8 +90,8 @@ language_and_definitions:
       on this at p. 124. The kernel-level status of equiv_s therefore requires an explicit normalization decision
       before M0 freeze.
     status: source_verified
-    project_normalization_status: M0.3 candidate freezes equiv_s as a first-class surface node with explicit checked
-      definition_conversion and no implicit rule-time elaboration.
+    project_normalization_status: M0.4 retains equiv_s as a first-class surface node with explicit checked definition_conversion,
+      closed-world certificate serialization, and no implicit rule-time elaboration.
 primitive_operations:
   Sa:
     project_label: Sa
@@ -228,7 +228,9 @@ primitive_schemas:
       - 493
       historical_loci:
       - Appendix II A8
-    parry_crosscheck: Parry 1939 pp. 137-138 uses the corresponding principle as 30.1 in an S3 basis with 11.1-11.7.
+    parry_crosscheck: Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and
+      30.1/A8; 11.5 is supplied by the McKinsey derivation discussed on p. 138. This gives direct syntactic support
+      for the project's unreduced normalized basis B1-B7+A8.
     status: source_verified
   C10:
     source:
@@ -306,9 +308,9 @@ normalized_systems:
       printed_pages:
       - 137
       - 138
-      statement: Parry pp. 137-138 uses a reduced S3 postulate list based on 11.1-11.4, 11.6, 11.7 and 30.1/A8,
-        with 11.5 supplied by McKinsey's derivation; this gives direct syntactic support for the project's unreduced
-        B1-B7+A8 normalized basis.
+      statement: Parry (1939), pp. 137-138, displays the reduced S3 postulate list 11.1-11.4, 11.6, 11.7 and 30.1/A8;
+        11.5 is supplied by the McKinsey derivation discussed on p. 138. This gives direct syntactic support for the
+        project's unreduced normalized basis B1-B7+A8.
     status: source_supported
     machine_bridge_status: kernel_pending
     basis_id: S3_B1_B7_A8
@@ -364,8 +366,8 @@ bridge_source_claims:
       printed_pages:
       - 137
       - 138
-    claim: Parry treats B1-7 or A1-7 as bases for S1 and explicitly states how the emended Survey postulates are
-      obtained in the S3 presentation.
+    claim: Parry treats B1-7 or A1-7 as bases for S1 and explicitly states how the emended Survey postulates are obtained
+      in the S3 presentation.
     status: source_supported
     machine_certificate: pending
   S1_DERIVES_A7:
@@ -392,11 +394,12 @@ bridge_source_claims:
       item: (12)
     status: source_verified
     machine_certificate: pending
-    source_qualification: L&L p. 498 derivability item is stated in a paragraph whose preamble assumes A1-A8 or
-      B1-B9; L&L p. 501 is the canonical direct source for the two B1-B7-based S5 presentations.
+    source_qualification: L&L p. 498 states this derivability item under that paragraph's explicit A1-A8/B1-B9 background;
+      it is historical source evidence, not a native B1-B7 bridge certificate.
     canonical_s5_basis_source:
       source_id: LL1932
       printed_page: 501
+      statement: Canonical direct source for the two B1-B7-based S5 presentations.
   C11_DERIVES_C12:
     source:
       source_id: LL1932
@@ -404,11 +407,12 @@ bridge_source_claims:
       item: (13)
     status: source_verified
     machine_certificate: pending
-    source_qualification: L&L p. 498 derivability item is stated in a paragraph whose preamble assumes A1-A8 or
-      B1-B9; L&L p. 501 is the canonical direct source for the two B1-B7-based S5 presentations.
+    source_qualification: L&L p. 498 states this derivability item under that paragraph's explicit A1-A8/B1-B9 background;
+      it is historical source evidence, not a native B1-B7 bridge certificate.
     canonical_s5_basis_source:
       source_id: LL1932
       printed_page: 501
+      statement: Canonical direct source for the two B1-B7-based S5 presentations.
   C10_C12_DERIVE_C11:
     source:
       source_id: LL1932
@@ -417,11 +421,12 @@ bridge_source_claims:
     status: source_verified
     machine_certificate: pending
     historical_regression: Shen Yuting proof reconstruction
-    source_qualification: L&L p. 498 derivability item is stated in a paragraph whose preamble assumes A1-A8 or
-      B1-B9; L&L p. 501 is the canonical direct source for the two B1-B7-based S5 presentations.
+    source_qualification: L&L p. 498 states this derivability item under that paragraph's explicit A1-A8/B1-B9 background;
+      it is historical source evidence, not a native B1-B7 bridge certificate.
     canonical_s5_basis_source:
       source_id: LL1932
       printed_page: 501
+      statement: Canonical direct source for the two B1-B7-based S5 presentations.
 scope_exclusions:
   B9:
     source:

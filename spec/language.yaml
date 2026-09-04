@@ -1,4 +1,4 @@
-spec_version: '0.3'
+spec_version: '0.4'
 component: language
 project: lewis-strict-implication-prover
 status: candidate_m0
@@ -57,8 +57,8 @@ formula_ast:
     primitive: false
     first_class_surface_node: true
     definition_id: DEF_STRICT_IMP
-    note: Retained as a first-class surface AST node because the Lewis fishhook is central to the prover and to
-      proof search.
+    note: Retained as a first-class surface AST node because the Lewis fishhook is central to the prover and to proof
+      search.
   or:
     arity: 2
     fields:
@@ -219,10 +219,10 @@ metadefinitions:
 elaboration_policy:
   definitions_are_inference_rules: false
   implicit_definition_conversion_allowed: false
-  surface_formula_identity: All Lewis primitive-rule checks use exact structural identity of the visible/surface
-    AST. The checker never expands or contracts a definition to rescue a failed rule match.
-  definition_conversion: Any visible expansion or contraction of DEF_OR, DEF_STRICT_IMP, or DEF_EQUIV_S must be
-    represented by an explicit trusted definition_conversion certificate node.
+  surface_formula_identity: All Lewis primitive-rule checks use exact structural identity of the visible/surface AST.
+    The checker never expands or contracts a definition to rescue a failed rule match.
+  definition_conversion: Any visible expansion or contraction of DEF_OR, DEF_STRICT_IMP, or DEF_EQUIV_S must be represented
+    by an explicit trusted definition_conversion certificate node.
   full_erasure: A deterministic recursive erasure into primitive atom/neg/and/poss syntax exists only for conservativity
     checks and diagnostic rendering; it is not used as implicit rule matching.
   preserve_surface_fishhook: true

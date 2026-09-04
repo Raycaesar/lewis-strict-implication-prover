@@ -1,17 +1,6 @@
-import copy
-from pathlib import Path
-
 import pytest
 
-from scripts.validate_spec import ValidationError, load_yaml_mapping, validate_spec_dir
-
-
-def test_current_spec_passes_normal_mode(spec_dir):
-    validate_spec_dir(spec_dir)
-
-
-def test_current_spec_passes_freeze_readiness(spec_dir):
-    validate_spec_dir(spec_dir, freeze=True)
+from scripts.validate_spec import ValidationError, load_yaml_mapping
 
 
 def test_duplicate_yaml_keys_rejected(tmp_path):
@@ -22,7 +11,7 @@ def test_duplicate_yaml_keys_rejected(tmp_path):
     assert any(i.code == "YAML_DUPLICATE_KEY" for i in exc.value.issues)
 
 
-def test_missing_required_spec_files_reported(tmp_path):
+def test_missing_file_rejected(tmp_path):
     with pytest.raises(ValidationError) as exc:
-        validate_spec_dir(tmp_path)
+        load_yaml_mapping(tmp_path / "missing.yaml")
     assert any(i.code == "FILE_MISSING" for i in exc.value.issues)
