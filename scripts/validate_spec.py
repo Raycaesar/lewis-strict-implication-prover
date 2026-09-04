@@ -549,11 +549,11 @@ def _check_rules(bundle, issues):
                 )
             )
             continue
-        if rule.get("historical_label") != rule_id:
+        if rule.get("project_label") != rule_id:
             issues.append(
                 ValidationIssue(
                     "RULE_LABEL",
-                    f"{rule_id} historical_label must remain {rule_id!r}",
+                    f"{rule_id} project_label must remain {rule_id!r}",
                 )
             )
         if not isinstance(rule.get("premise_count"), int):

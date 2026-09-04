@@ -93,3 +93,17 @@ The `Strict_Implication/` directory is a research/reference corpus.
 It is not executable specification.
 
 No implementation should parse a PDF at runtime to determine what the calculus is. The executable source of truth is `spec/*.yaml`, after audit.
+
+
+## 8. Project rule labels
+
+`Sa`, `Sb`, `Ad`, and `Smp` are stable project/editorial labels used by this
+repository and the associated manuscript. They must not be described as
+literal symbolic labels printed by Lewis & Langford.
+
+Canonical L&L provenance is:
+
+- `Sa`: Substitution (b), p. 125;
+- `Sb`: Substitution (a), p. 125;
+- `Ad`: Adjunction, p. 126;
+- `Smp`: Inference, p. 126.

@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "spec/**"
+      - "audit/m0/**"
       - "scripts/**"
       - "tests/spec/**"
       - "tests/conftest.py"
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - "spec/**"
+      - "audit/m0/**"
       - "scripts/**"
       - "tests/spec/**"
       - "tests/conftest.py"
@@ -40,6 +42,9 @@ jobs:
 
       - name: Validate executable M0 specification
         run: python scripts/validate_spec.py
+
+      - name: Validate M0 source register
+        run: python scripts/validate_source_register.py
 
       - name: Run M0 validation tests
         run: pytest

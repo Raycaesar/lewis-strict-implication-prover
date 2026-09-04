@@ -242,3 +242,36 @@ For `Sb`, the renderer should show the equivalence line, target line, direction,
 A certificate is accepted iff every node is accepted in dependency order and the `root` node is structurally identical to the declared `goal`.
 
 No separate "trusted theorem cache" may bypass this condition.
+
+
+---
+
+## 13. Definition conversion — M0 freeze issue
+
+Historical proofs routinely move between a defined notation and its defining
+expression. For this project, that includes `or`, the strict-implication
+fishhook, and `equiv_s`.
+
+This is **not** to become a fifth primitive Lewis inference rule.
+
+The current candidate design is a trusted metalinguistic certificate node:
+
+```yaml
+kind: definition_conversion
+parent: n12
+definition_id: DEF_EQUIV_S
+direction: contract
+occurrence_path: []
+conclusion: ...
+```
+
+The checker would verify that the selected occurrence is exactly the left- or
+right-hand side of the registered metadefinition and that the declared
+replacement yields the conclusion.
+
+Whether this exact design is frozen must be decided in the M0 foundational
+audit, especially because `equiv_s` is also the premise connective governing
+`Sb`.
+
+Until that decision is closed, M1 must not implement a permanent certificate
+format for definition conversion.

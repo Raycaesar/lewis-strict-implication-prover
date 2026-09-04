@@ -5,9 +5,9 @@ def test_primitive_rule_registry_is_exact(spec_bundle):
     assert set(spec_bundle.rules["primitive_rules"]) == EXPECTED
 
 
-def test_rule_labels_are_stable(spec_bundle):
+def test_project_rule_labels_are_stable(spec_bundle):
     for rule_id, rule in spec_bundle.rules["primitive_rules"].items():
-        assert rule["historical_label"] == rule_id
+        assert rule["project_label"] == rule_id
 
 
 def test_unrestricted_necessitation_is_disabled(spec_bundle):

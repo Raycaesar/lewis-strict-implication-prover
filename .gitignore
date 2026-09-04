@@ -31,3 +31,6 @@ proof-search-cache/
 *.log
 
 # Do not ignore checked proof certificates, specs, or historical fixtures.
+
+# Windows Mark-of-the-Web metadata materialized in WSL
+*:Zone.Identifier

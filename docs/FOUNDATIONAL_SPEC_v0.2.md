@@ -122,7 +122,7 @@ S1 + A8
 
 This is a normalized machine basis.
 
-Lewis & Langford historically present S3 through A1–A8. We do not duplicate A1–A6 because they agree with the corresponding B-series principles in the relevant normalized presentation, and A7 is to be stored as an S1-derived theorem after its proof is kernel-checked.
+Lewis & Langford historically present S3 through A1–A8. We do not store A1–A6 as a second executable schema list. This is a normalized-basis/derivability decision, not a claim that every A1–A6 formula is literally identical with B1–B6. L&L Appendix II p. 493 displays the two lists side by side, and Parry 1939 pp. 137–138 directly supports the S3 presentation based on 11.1–11.7 plus A8/30.1. A7 is to be stored as an S1-derived theorem after its proof is kernel-checked.
 
 ### S4
 
@@ -293,3 +293,24 @@ M0 is complete only when:
 7. a fresh foundational audit finds no unresolved calculus-level ambiguity.
 
 Only then is the specification marked **M0 FROZEN** and M1 kernel implementation begins.
+
+
+---
+
+## 13. M0 source-audit blockers before freeze
+
+The first dedicated source pass has identified three issues that remain open
+before `M0 FROZEN`:
+
+1. the exact kernel-level status of `equiv_s` in light of L&L pp. 123–124;
+2. replacement of the permissive phrase “the kernel may elaborate” by a
+   deterministic definition-conversion policy;
+3. the proof-certificate representation of visible transformations justified
+   “by definition”.
+
+See `audit/m0/foundational_obligations.yaml` and
+`audit/m0/FIRST_PASS_FINDINGS.md`.
+
+The convenient labels `Sa`, `Sb`, `Ad`, and `Smp` are project/editorial labels.
+Their L&L sources are Substitution (b), Substitution (a), Adjunction, and
+Inference respectively on pp. 125–126.

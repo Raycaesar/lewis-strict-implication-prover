@@ -17,11 +17,14 @@ Current stage.
 - [x] `spec/schemas.yaml`
 - [x] `spec/systems.yaml`
 - [x] foundational documentation skeleton
-- [ ] source-location audit for every primitive schema
+- [x] source/provenance register for every primitive schema and operation
+- [x] first direct source pass against L&L Appendix II and Chapter VI
+- [x] structural consistency check between all four YAML files
+- [x] source-register referential-integrity validator
 - [ ] exact audit of strict-equivalence definition/status
 - [ ] exact audit of definition expansion/contraction policy
-- [ ] consistency check between all four YAML files
-- [ ] independent foundational audit
+- [ ] close all M0 blockers in `audit/m0/foundational_obligations.yaml`
+- [ ] independent Work Max foundational audit
 
 ### Exit criterion
 

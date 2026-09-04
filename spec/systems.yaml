@@ -1,91 +1,156 @@
-spec_version: "0.1"
+spec_version: '0.1'
 component: systems
 project: lewis-strict-implication-prover
 status: draft_m0
-
 normalization_policy:
-  purpose: "Represent only S1-S5 without duplicating L&L's overlapping A- and B-postulate lists."
+  purpose: Represent only S1-S5 without duplicating L&L's overlapping A- and B-postulate lists.
   key_decisions:
-    - "A1-A6 are not stored separately because, formula-for-formula, they duplicate B1-B6 up to L&L's presentation."
-    - "A7 is not stored as a primitive schema in the normalized prover basis because it is derivable in S1 and will be carried as a certified theorem/bridge lemma."
-    - "S3 is therefore represented by the equivalent normalized basis S1 + A8, rather than by a second copy of A1-A8."
-    - "B9 is excluded from the propositional/modal S1-S5 core."
-    - "No system enables Box notation or unrestricted necessitation."
-
+  - A1-A6 are not stored as separate executable schemas. This is a normalization/derivability decision, not a claim
+    that all six are literal copies of B1-B6.
+  - A7 is not stored as a primitive schema; the normalized prover will carry it as a certified S1 theorem/bridge
+    lemma.
+  - S3 is represented by S1 + A8. Parry (1939), pp. 137-138, directly uses 11.1-11.7 plus 30.1/A8 as an S3 postulate
+    set and explains recovery of the emended Survey postulates.
+  - B9 is excluded from the propositional/modal S1-S5 core.
+  - No system enables Box notation or unrestricted necessitation.
 systems:
   S1:
-    name: "Lewis S1"
+    name: Lewis S1
     normalized_basis:
-      schemas: [B1, B2, B3, B4, B5, B6, B7]
-      rules: [Sa, Sb, Ad, Smp]
-    historical_source_note: "L&L Appendix II: S1 is deduced from B1-B7."
-    excluded: [B8, B9, A8, C10, C11, C12]
-
+      schemas:
+      - B1
+      - B2
+      - B3
+      - B4
+      - B5
+      - B6
+      - B7
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
+    historical_source_note: 'L&L Appendix II: S1 is deduced from B1-B7.'
+    excluded:
+    - B8
+    - B9
+    - A8
+    - C10
+    - C11
+    - C12
   S2:
-    name: "Lewis S2"
+    name: Lewis S2
     normalized_basis:
       inherit_schemas_from: S1
-      add_schemas: [B8]
-      rules: [Sa, Sb, Ad, Smp]
-    historical_source_note: "L&L Appendix II: S2 is deduced from B1-B8."
-    excluded: [B9, A8, C10, C11, C12]
-
+      add_schemas:
+      - B8
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
+    historical_source_note: 'L&L Appendix II: S2 is deduced from B1-B8.'
+    excluded:
+    - B9
+    - A8
+    - C10
+    - C11
+    - C12
   S3:
-    name: "Lewis S3"
+    name: Lewis S3
     normalized_basis:
       inherit_schemas_from: S1
-      add_schemas: [A8]
-      rules: [Sa, Sb, Ad, Smp]
-    historical_basis_note: "L&L presents S3 by A1-A8. For this prover we use the equivalent non-duplicative basis S1 + A8."
+      add_schemas:
+      - A8
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
+    historical_basis_note: L&L p. 500 presents S3 by A1-A8. The normalized prover uses S1 + A8; Parry 1939 pp. 137-138
+      gives direct syntactic support for the 11.1-11.7 + 30.1/A8 presentation.
     normalization_obligations:
-      - id: S1_DERIVES_A7
-        statement: "S1 proves A7: ∼◇P ⥽ ∼P."
-        status: to_be_machine_certified
-      - id: S3_NORMALIZED_BASIS_EQUIVALENCE
-        statement: "The normalized basis S1 + A8 generates the same S3 theorem set required by the project as L&L's A1-A8 presentation."
-        status: to_be_machine_certified
-    excluded: [B9, C10, C11, C12]
-
+    - id: S1_DERIVES_A7
+      statement: 'S1 proves A7: ∼◇P ⥽ ∼P.'
+      status: source_supported_kernel_pending
+      source: Parry 1939 pp. 137-138
+    - id: S3_NORMALIZED_BASIS_EQUIVALENCE
+      statement: The normalized basis S1 + A8 generates the same S3 theorem set required by the project as L&L's
+        A1-A8 presentation.
+      status: source_supported_kernel_pending
+      source: Parry 1939 pp. 137-138
+    excluded:
+    - B9
+    - C10
+    - C11
+    - C12
   S4:
-    name: "Lewis S4"
+    name: Lewis S4
     normalized_basis:
       inherit_schemas_from: S1
-      add_schemas: [C10]
-      rules: [Sa, Sb, Ad, Smp]
-    historical_source_note: "L&L Appendix II gives S4 from B1-B7 together with C10."
+      add_schemas:
+      - C10
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
+    historical_source_note: 'L&L Appendix II p. 501: S4 is deduced from B1-B7 together with C10; A8 and B8 are deductible.'
     bridge_obligations:
-      - id: S4_DERIVES_S3_EXTENSION
-        statement: "Certify the principles needed to reuse S3 theorems in S4 without treating the primitive bases as literal inheritance."
-        status: to_be_machine_certified
-    excluded: [B9, C11, C12]
-
+    - id: S4_DERIVES_S3_EXTENSION
+      statement: Certify the principles needed to reuse S3 theorems in S4 without treating the primitive bases as
+        literal inheritance.
+      status: to_be_machine_certified
+    excluded:
+    - B9
+    - C11
+    - C12
   S5:
-    name: "Lewis S5"
+    name: Lewis S5
     primary_normalized_basis:
       inherit_schemas_from: S1
-      add_schemas: [C11]
-      rules: [Sa, Sb, Ad, Smp]
+      add_schemas:
+      - C11
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
     alternative_normalized_basis:
       inherit_schemas_from: S1
-      add_schemas: [C10, C12]
-      rules: [Sa, Sb, Ad, Smp]
-    historical_source_note: "L&L gives the C11 presentation and the C10+C12 presentation as equivalent routes to S5."
+      add_schemas:
+      - C10
+      - C12
+      rules:
+      - Sa
+      - Sb
+      - Ad
+      - Smp
+    historical_source_note: 'L&L Appendix II p. 501: S5 is deduced from B1-B7+C11, or from B1-B7+C10+C12.'
     bridge_obligations:
-      - id: C10_C12_DERIVE_C11
-        statement: "S1 + C10 + C12 proves C11."
-        historical_regression: "Shen Yuting derivation"
-        status: to_be_machine_certified
-      - id: C11_DERIVES_C10_C12
-        statement: "S1 + C11 proves the C10/C12 presentation required for basis equivalence."
-        status: to_be_machine_certified
-    excluded: [B9]
-
+    - id: C10_C12_DERIVE_C11
+      statement: S1 + C10 + C12 proves C11.
+      historical_regression: Shen Yuting derivation
+      status: to_be_machine_certified
+      source: L&L Appendix II p. 498, item (14)
+    - id: C11_DERIVES_C10_C12
+      statement: S1 + C11 proves the C10/C12 presentation required for basis equivalence.
+      status: to_be_machine_certified
+      source: L&L Appendix II p. 498, items (12)-(13)
+    excluded:
+    - B9
 theorem_inclusion:
-  intended_hierarchy: [S1, S2, S3, S4, S5]
+  intended_hierarchy:
+  - S1
+  - S2
+  - S3
+  - S4
+  - S5
   trusted_by_kernel_without_bridge: false
-  policy: "The search layer may use the hierarchy only after the relevant inclusion is backed by machine-checked bridge certificates. Primitive-basis inheritance and theorem inclusion are distinct relations."
-
+  policy: The search layer may use the hierarchy only after the relevant inclusion is backed by machine-checked
+    bridge certificates. Primitive-basis inheritance and theorem inclusion are distinct relations.
 extensions_not_in_m0:
   B9_existence:
     enabled: false
-    reason: "B9 introduces propositional existence quantification and is outside the requested S1-S5 propositional/modal prover core."
+    reason: B9 introduces propositional existence quantification and is outside the requested S1-S5 propositional/modal
+      prover core.

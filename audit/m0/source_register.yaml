@@ -1,0 +1,300 @@
+register_version: "0.2"
+project: lewis-strict-implication-prover
+stage: M0
+status: draft_source_audit
+
+canonical_source:
+  id: LL1932
+  author: "C. I. Lewis and C. H. Langford"
+  title: "Symbolic Logic"
+  edition: "2nd ed. (1932); supplied Dover 1959 reprint"
+  repository_path: "Strict_Implication/Symbolic Logic_Lewis_Langford_1959.pdf"
+  authority: canonical_for_native_calculus
+  note: "Printed page numbers below refer to the book pagination reproduced by the Dover reprint."
+
+secondary_sources:
+  PARRY1939:
+    author: "William Tuthill Parry"
+    title: "Modalities in the Survey System of Strict Implication"
+    year: 1939
+    repository_path: "Strict_Implication/Parry-1939.pdf"
+    authority: secondary_syntactic
+    use:
+      - "Supports the non-duplicative S3 presentation with 11.1-11.7 plus A8/30.1."
+      - "Provides syntactic modal results and later bridge material."
+  FEYS:
+    author: "Robert Feys"
+    title: "Modal Logics"
+    repository_path: "Strict_Implication/feys_modal_logic.pdf"
+    authority: secondary_syntactic
+    use:
+      - "Derived-rule and proof-template library."
+      - "Cross-check of substitution, adjunction, strict detachment, and replacement of strict equivalents."
+  MCKINSEY1934:
+    author: "J. C. C. McKinsey"
+    year: 1934
+    repository_path: "Strict_Implication/McKinsey-1934.pdf"
+    authority: secondary_syntactic
+    use:
+      - "Redundancy and proof-minimization information."
+  HUGHES_CRESSWELL:
+    repository_path: "Strict_Implication/hugn_max.pdf"
+    authority: modern_crosscheck_only
+    use:
+      - "Modern reconstruction and warning against importing unrestricted necessitation into S1-S3."
+  LEWIS1918:
+    repository_path: "Strict_Implication/Lewis_A_Survey_of_Symbolic_Logic_1918.pdf"
+    authority: historical_reference_only
+
+language_and_definitions:
+  primitive_ideas_LL:
+    source:
+      source_id: LL1932
+      printed_page: 123
+      locus: "Chapter VI, Section 1"
+    historical_items:
+      - propositions
+      - negation
+      - logical_product
+      - possibility_or_self_consistency
+      - logical_equivalence
+    project_normalization:
+      - "Keep neg, and, poss as primitive core constructors."
+      - "Retain strict_imp as a first-class defined surface node."
+      - "Represent L&L logical equivalence by equiv_s rather than object-language '='."
+      - "Do not introduce Box in M0."
+    status: source_verified
+
+  DEF_OR:
+    source:
+      source_id: LL1932
+      printed_page: 123
+      historical_number: "11.01"
+    historical_form: "p ∨ q =df ∼(∼p ∼q)"
+    project_id: DEF_OR
+    status: source_verified
+
+  DEF_STRICT_IMP:
+    source:
+      source_id: LL1932
+      printed_page: 124
+      historical_number: "11.02"
+    historical_form: "p fishhook q =df ∼◇(p ∼q)"
+    project_id: DEF_STRICT_IMP
+    status: source_verified
+
+  DEF_EQUIV_S:
+    source:
+      source_id: LL1932
+      printed_page: 124
+      historical_number: "11.03"
+    historical_form: "p = q =df (p fishhook q)(q fishhook p)"
+    project_form: "p equiv_s q := (p fishhook q)(q fishhook p)"
+    caution: "L&L also lists logical equivalence among the primitive/undefined ideas on p. 123 and explicitly comments on this at p. 124. The kernel-level status of equiv_s therefore requires an explicit normalization decision before M0 freeze."
+    status: open
+
+primitive_operations:
+  Sa:
+    project_label: Sa
+    project_name: "Uniform Substitution"
+    source:
+      source_id: LL1932
+      printed_page: 125
+      historical_heading: "Substitution"
+      historical_clause: "(b)"
+    source_summary: "Any proposition or meaningful expression may be substituted uniformly for p, q, r, etc. in an assumption or established theorem."
+    note: "Sa is a project/editorial label, not an L&L symbolic rule label."
+    feys_crosscheck: "Feys 30.21, Rule of substitution."
+    status: source_verified
+
+  Sb:
+    project_label: Sb
+    project_name: "Substitution of Equivalents"
+    source:
+      source_id: LL1932
+      printed_page: 125
+      historical_heading: "Substitution"
+      historical_clause: "(a)"
+    source_summary: "Either of two equivalent expressions may be substituted for the other."
+    note: "Sb is a project/editorial label, not an L&L symbolic rule label."
+    feys_crosscheck: "Feys 30.24, replacement of strict equivalents."
+    status: source_verified
+
+  Ad:
+    project_label: Ad
+    project_name: "Adjunction"
+    source:
+      source_id: LL1932
+      printed_page: 126
+      historical_heading: "Adjunction"
+    source_summary: "Separately asserted p and q may be jointly asserted as pq."
+    note: "Ad is a project/editorial label."
+    feys_crosscheck: "Feys 30.22."
+    status: source_verified
+
+  Smp:
+    project_label: Smp
+    project_name: "Strict Modus Ponens"
+    source:
+      source_id: LL1932
+      printed_page: 126
+      historical_heading: "Inference"
+    source_summary: "From asserted p and asserted p fishhook q, infer q."
+    note: "Smp is a project/editorial label; L&L call the operation Inference."
+    feys_crosscheck: "Feys 30.23, detachment for strict implication."
+    status: source_verified
+
+primitive_schemas:
+  B1:
+    source: {source_id: LL1932, printed_pages: [124, 493], historical_loci: ["11.1", "Appendix II B1"]}
+    status: source_verified
+  B2:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.2", "Appendix II B2"]}
+    status: source_verified
+  B3:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.3", "Appendix II B3"]}
+    status: source_verified
+  B4:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.4", "Appendix II B4"]}
+    status: source_verified
+  B5:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.5", "Appendix II B5"]}
+    status: source_verified
+  B6:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.6", "Appendix II B6"]}
+    status: source_verified
+  B7:
+    source: {source_id: LL1932, printed_pages: [125, 493], historical_loci: ["11.7", "Appendix II B7"]}
+    status: source_verified
+  B8:
+    source: {source_id: LL1932, printed_pages: [493], historical_loci: ["Appendix II B8", "Chapter VI 19.01"]}
+    parry_crosscheck: "Parry 1939 p. 137 identifies 19.01 as B8."
+    status: source_verified
+  A8:
+    source: {source_id: LL1932, printed_pages: [493], historical_loci: ["Appendix II A8"]}
+    parry_crosscheck: "Parry 1939 pp. 137-138 uses the corresponding principle as 30.1 in an S3 basis with 11.1-11.7."
+    status: source_verified
+  C10:
+    source: {source_id: LL1932, printed_pages: [497], historical_loci: ["Appendix II C10"]}
+    status: source_verified
+  C11:
+    source: {source_id: LL1932, printed_pages: [497], historical_loci: ["Appendix II C11"]}
+    status: source_verified
+  C12:
+    source: {source_id: LL1932, printed_pages: [497], historical_loci: ["Appendix II C12"]}
+    note: "L&L report Becker's name 'Brouwersche Axiom'."
+    status: source_verified
+
+normalized_systems:
+  S1:
+    project_basis: [B1, B2, B3, B4, B5, B6, B7]
+    source:
+      source_id: LL1932
+      printed_page: 500
+      statement: "S1 is deduced from B1-7."
+    status: source_verified
+
+  S2:
+    project_basis: [B1, B2, B3, B4, B5, B6, B7, B8]
+    source:
+      source_id: LL1932
+      printed_page: 500
+      statement: "S2 is deduced from B1-8."
+    status: source_verified
+
+  S3:
+    project_basis: [B1, B2, B3, B4, B5, B6, B7, A8]
+    canonical_historical_presentation:
+      source_id: LL1932
+      printed_page: 500
+      statement: "L&L describe S3 as deduced from A1-8."
+    normalized_basis_support:
+      source_id: PARRY1939
+      printed_pages: [137, 138]
+      statement: "Parry takes 11.1-11.7 together with 30.1/A8 as postulates for S3 and states how the emended Survey postulates A1-8 follow."
+    status: source_supported
+    machine_bridge_status: kernel_pending
+
+  S4:
+    project_basis: [B1, B2, B3, B4, B5, B6, B7, C10]
+    source:
+      source_id: LL1932
+      printed_page: 501
+      statement: "S4 is deduced from B1-7 and C10; A8 and B8 are deductible."
+    status: source_verified
+    machine_bridge_status: kernel_pending
+
+  S5:
+    primary_project_basis: [B1, B2, B3, B4, B5, B6, B7, C11]
+    alternative_project_basis: [B1, B2, B3, B4, B5, B6, B7, C10, C12]
+    source:
+      source_id: LL1932
+      printed_page: 501
+      statement: "S5 is deduced from B1-7 and C11, or from B1-7, C10 and C12."
+    status: source_verified
+    machine_bridge_status: kernel_pending
+
+bridge_source_claims:
+  S1_RECOVERS_A_SERIES:
+    source:
+      source_id: PARRY1939
+      printed_pages: [137, 138]
+    claim: "Parry treats B1-7 or A1-7 as bases for S1 and explicitly states how the emended Survey postulates are obtained in the S3 presentation."
+    status: source_supported
+    machine_certificate: pending
+
+  S1_DERIVES_A7:
+    source:
+      source_id: PARRY1939
+      printed_pages: [137, 138]
+    claim: "A7 belongs to the A1-7 presentation of S1; it is not retained as a separate primitive in the normalized prover."
+    status: source_supported
+    machine_certificate: pending
+
+  S4_DERIVES_A8_B8:
+    source:
+      source_id: LL1932
+      printed_page: 501
+    claim: "L&L explicitly say A8 and B8 are deductible in S4."
+    status: source_verified
+    machine_certificate: pending
+
+  C11_DERIVES_C10:
+    source:
+      source_id: LL1932
+      printed_page: 498
+      item: "(12)"
+    status: source_verified
+    machine_certificate: pending
+
+  C11_DERIVES_C12:
+    source:
+      source_id: LL1932
+      printed_page: 498
+      item: "(13)"
+    status: source_verified
+    machine_certificate: pending
+
+  C10_C12_DERIVE_C11:
+    source:
+      source_id: LL1932
+      printed_page: 498
+      item: "(14)"
+    status: source_verified
+    machine_certificate: pending
+    historical_regression: "Shen Yuting proof reconstruction"
+
+scope_exclusions:
+  B9:
+    source:
+      source_id: LL1932
+      printed_pages: [493, 500, 501]
+    reason: "Existence Postulate and propositional-existence machinery are outside the initial propositional/modal core."
+    status: not_in_m0
+
+  C13:
+    source:
+      source_id: LL1932
+      printed_page: 497
+    reason: "Not part of S1-S5 normalized bases targeted by the initial prover."
+    status: not_in_m0

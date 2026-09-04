@@ -18,6 +18,8 @@ Before changing any logic-sensitive code, read in this order:
 6. `spec/systems.yaml`
 7. `docs/PROOF_CERTIFICATE_SPEC.md`
 8. `docs/ARCHITECTURE.md`
+9. `audit/m0/source_register.yaml`
+10. `audit/m0/foundational_obligations.yaml`
 
 If prose documentation conflicts with `spec/*.yaml`, **stop and report the conflict**. Do not guess which version is intended.
 
@@ -72,7 +74,7 @@ Normalized prover bases:
 - S4: B1–B7 + C10
 - S5: B1–B7 + C11
 
-Do not duplicate A1–A6 as independent stored schemas merely because the 1932 historical presentation lists an A-series.
+Do not duplicate A1–A6 as an independent executable schema list merely because the 1932 historical presentation lists an A-series. Also do not claim that all A1–A6 are literal formula-for-formula copies of B1–B6; the normalization is justified by derivability/source reconstruction.
 
 A7 is not primitive in the normalized prover. It belongs in the derived/historical proof corpus once a checked S1 proof is available.
 

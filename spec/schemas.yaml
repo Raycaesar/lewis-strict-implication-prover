@@ -1,224 +1,305 @@
-spec_version: "0.1"
+spec_version: '0.1'
 component: schemas
 project: lewis-strict-implication-prover
 status: draft_m0
-
 notation:
-  strict_imp: "fishhook / article macro \\strictif / Unicode ⥽"
-  strict_equiv: "equiv_s / article macro \\strictequiv / Unicode ≡ₛ"
-  possibility: "article macro \\poss / Unicode ◇"
-  negation: "article notation \\sim / Unicode ∼"
-  product: "and; historically/article rendered by juxtaposition"
-  note: "The equality sign is not an object-language connective in this specification."
-
+  strict_imp: fishhook / article macro \strictif / Unicode ⥽
+  strict_equiv: equiv_s / article macro \strictequiv / Unicode ≡ₛ
+  possibility: article macro \poss / Unicode ◇
+  negation: article notation \sim / Unicode ∼
+  product: and; historically/article rendered by juxtaposition
+  note: The equality sign is not an object-language connective in this specification.
 schema_policy:
-  metavariables: "Every P/Q/R occurrence below is explicitly tagged as {meta: ...}."
+  metavariables: 'Every P/Q/R occurrence below is explicitly tagged as {meta: ...}.'
   no_duplicate_A1_A7: true
   explanation:
-    - "A1-A6 duplicate B1-B6 for the normalized prover's purposes."
-    - "A7 is omitted from the primitive schema registry because it is to be certified as an S1 theorem."
-    - "Only the genuinely additional S3 postulate A8 is retained."
-
+  - Separate executable copies of A1-A6 are unnecessary in the normalized prover, but they are not all literal formula-for-formula
+    copies of B1-B6.
+  - L&L Appendix II p. 493 shows the A- and B-series side by side; in particular A2 and A4 are not literal copies
+    of B2 and B4.
+  - Parry (1939), pp. 137-138, explicitly uses 11.1-11.7 together with 30.1/A8 as postulates for S3 and states how
+    the emended Survey postulates A1-A8 are obtained.
+  - A7 is omitted from the primitive schema registry because it is to be certified in the normalized S1 theorem/bridge
+    corpus.
+  - Only the genuinely additional S3 postulate A8 is retained as a primitive extension schema.
 schemas:
   B1:
     family: B
     role: S1_postulate
-    gloss: "commutation of product"
-    display: "PQ ⥽ QP"
+    gloss: commutation of product
+    display: PQ ⥽ QP
     ast:
       op: strict_imp
       left:
         op: and
-        left: {meta: P}
-        right: {meta: Q}
+        left:
+          meta: P
+        right:
+          meta: Q
       right:
         op: and
-        left: {meta: Q}
-        right: {meta: P}
+        left:
+          meta: Q
+        right:
+          meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B1"
-
+      locus: Appendix II, B1
+      printed_pages:
+      - 124
+      - 493
+      historical_loci:
+      - Chapter VI 11.1
+      - Appendix II B1
   B2:
     family: B
     role: S1_postulate
-    gloss: "simplification"
-    display: "PQ ⥽ P"
+    gloss: simplification
+    display: PQ ⥽ P
     ast:
       op: strict_imp
       left:
         op: and
-        left: {meta: P}
-        right: {meta: Q}
-      right: {meta: P}
+        left:
+          meta: P
+        right:
+          meta: Q
+      right:
+        meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B2"
-
+      locus: Appendix II, B2
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.2
+      - Appendix II B2
   B3:
     family: B
     role: S1_postulate
-    gloss: "idempotent expansion"
-    display: "P ⥽ PP"
+    gloss: idempotent expansion
+    display: P ⥽ PP
     ast:
       op: strict_imp
-      left: {meta: P}
+      left:
+        meta: P
       right:
         op: and
-        left: {meta: P}
-        right: {meta: P}
+        left:
+          meta: P
+        right:
+          meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B3"
-
+      locus: Appendix II, B3
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.3
+      - Appendix II B3
   B4:
     family: B
     role: S1_postulate
-    gloss: "one associativity direction"
-    display: "(PQ)R ⥽ P(QR)"
+    gloss: one associativity direction
+    display: (PQ)R ⥽ P(QR)
     ast:
       op: strict_imp
       left:
         op: and
         left:
           op: and
-          left: {meta: P}
-          right: {meta: Q}
-        right: {meta: R}
+          left:
+            meta: P
+          right:
+            meta: Q
+        right:
+          meta: R
       right:
         op: and
-        left: {meta: P}
+        left:
+          meta: P
         right:
           op: and
-          left: {meta: Q}
-          right: {meta: R}
+          left:
+            meta: Q
+          right:
+            meta: R
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B4"
-
+      locus: Appendix II, B4
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.4
+      - Appendix II B4
   B5:
     family: B
     role: S1_postulate
-    gloss: "one double-negation direction"
-    display: "P ⥽ ∼∼P"
+    gloss: one double-negation direction
+    display: P ⥽ ∼∼P
     ast:
       op: strict_imp
-      left: {meta: P}
+      left:
+        meta: P
       right:
         op: neg
         arg:
           op: neg
-          arg: {meta: P}
+          arg:
+            meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B5"
-
+      locus: Appendix II, B5
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.5
+      - Appendix II B5
   B6:
     family: B
     role: S1_postulate
-    gloss: "internalized transitivity of strict implication"
-    display: "(P ⥽ Q)(Q ⥽ R) ⥽ (P ⥽ R)"
+    gloss: internalized transitivity of strict implication
+    display: (P ⥽ Q)(Q ⥽ R) ⥽ (P ⥽ R)
     ast:
       op: strict_imp
       left:
         op: and
         left:
           op: strict_imp
-          left: {meta: P}
-          right: {meta: Q}
+          left:
+            meta: P
+          right:
+            meta: Q
         right:
           op: strict_imp
-          left: {meta: Q}
-          right: {meta: R}
+          left:
+            meta: Q
+          right:
+            meta: R
       right:
         op: strict_imp
-        left: {meta: P}
-        right: {meta: R}
+        left:
+          meta: P
+        right:
+          meta: R
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B6"
-
+      locus: Appendix II, B6
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.6
+      - Appendix II B6
   B7:
     family: B
     role: S1_postulate
-    gloss: "internalized strict inference"
-    display: "P(P ⥽ Q) ⥽ Q"
+    gloss: internalized strict inference
+    display: P(P ⥽ Q) ⥽ Q
     ast:
       op: strict_imp
       left:
         op: and
-        left: {meta: P}
+        left:
+          meta: P
         right:
           op: strict_imp
-          left: {meta: P}
-          right: {meta: Q}
-      right: {meta: Q}
+          left:
+            meta: P
+          right:
+            meta: Q
+      right:
+        meta: Q
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B7"
-
+      locus: Appendix II, B7
+      printed_pages:
+      - 125
+      - 493
+      historical_loci:
+      - Chapter VI 11.7
+      - Appendix II B7
   B8:
     family: B
     role: S2_extension_postulate
-    gloss: "Consistency Postulate / possibility projection"
-    display: "◇(PQ) ⥽ ◇P"
+    gloss: Consistency Postulate / possibility projection
+    display: ◇(PQ) ⥽ ◇P
     ast:
       op: strict_imp
       left:
         op: poss
         arg:
           op: and
-          left: {meta: P}
-          right: {meta: Q}
+          left:
+            meta: P
+          right:
+            meta: Q
       right:
         op: poss
-        arg: {meta: P}
+        arg:
+          meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, B8"
-
+      locus: Appendix II, B8
+      printed_pages:
+      - 493
+      historical_loci:
+      - Chapter VI 19.01
+      - Appendix II B8
   A8:
     family: A
     role: S3_extension_postulate_in_normalized_basis
-    gloss: "modal contraposition principle"
-    display: "(P ⥽ Q) ⥽ (∼◇Q ⥽ ∼◇P)"
+    gloss: modal contraposition principle
+    display: (P ⥽ Q) ⥽ (∼◇Q ⥽ ∼◇P)
     ast:
       op: strict_imp
       left:
         op: strict_imp
-        left: {meta: P}
-        right: {meta: Q}
+        left:
+          meta: P
+        right:
+          meta: Q
       right:
         op: strict_imp
         left:
           op: neg
           arg:
             op: poss
-            arg: {meta: Q}
+            arg:
+              meta: Q
         right:
           op: neg
           arg:
             op: poss
-            arg: {meta: P}
+            arg:
+              meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, A8"
-    normalization_note: "A1-A6 are not duplicated; A7 is handled as an S1-derived theorem."
-
+      locus: Appendix II, A8
+      printed_pages:
+      - 493
+      historical_loci:
+      - Appendix II A8
+    normalization_note: A8 is retained as the additional primitive schema in the normalized S3 basis. Parry 1939
+      pp. 137-138 directly supports an S3 presentation based on 11.1-11.7 plus 30.1/A8.
   C10:
     family: C
     role: S4_extension_postulate
-    gloss: "Becker C10; strict version of later axiom 4, expressed without Box"
-    display: "∼◇∼P ⥽ ∼◇∼∼◇∼P"
+    gloss: Becker C10; strict version of later axiom 4, expressed without Box
+    display: ∼◇∼P ⥽ ∼◇∼∼◇∼P
     ast:
       op: strict_imp
       left:
@@ -227,7 +308,8 @@ schemas:
           op: poss
           arg:
             op: neg
-            arg: {meta: P}
+            arg:
+              meta: P
       right:
         op: neg
         arg:
@@ -240,23 +322,28 @@ schemas:
                 op: poss
                 arg:
                   op: neg
-                  arg: {meta: P}
+                  arg:
+                    meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, C10"
+      locus: Appendix II, C10
+      printed_pages:
+      - 497
+      historical_loci:
+      - Appendix II C10
     no_box_rewrite_in_native_core: true
-
   C11:
     family: C
     role: S5_primary_extension_postulate
-    gloss: "Becker C11; strict version of later axiom 5, expressed without Box"
-    display: "◇P ⥽ ∼◇∼◇P"
+    gloss: Becker C11; strict version of later axiom 5, expressed without Box
+    display: ◇P ⥽ ∼◇∼◇P
     ast:
       op: strict_imp
       left:
         op: poss
-        arg: {meta: P}
+        arg:
+          meta: P
       right:
         op: neg
         arg:
@@ -265,21 +352,26 @@ schemas:
             op: neg
             arg:
               op: poss
-              arg: {meta: P}
+              arg:
+                meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, C11"
+      locus: Appendix II, C11
+      printed_pages:
+      - 497
+      historical_loci:
+      - Appendix II C11
     no_box_rewrite_in_native_core: true
-
   C12:
     family: C
     role: S5_alternative_extension_postulate
-    gloss: "Becker's Brouwersche Axiom; strict version of later axiom B, expressed without Box"
-    display: "P ⥽ ∼◇∼◇P"
+    gloss: Becker's Brouwersche Axiom; strict version of later axiom B, expressed without Box
+    display: P ⥽ ∼◇∼◇P
     ast:
       op: strict_imp
-      left: {meta: P}
+      left:
+        meta: P
       right:
         op: neg
         arg:
@@ -288,18 +380,24 @@ schemas:
             op: neg
             arg:
               op: poss
-              arg: {meta: P}
+              arg:
+                meta: P
     source:
-      work: "Lewis & Langford, Symbolic Logic"
+      work: Lewis & Langford, Symbolic Logic
       edition: 1932
-      locus: "Appendix II, C12"
+      locus: Appendix II, C12
+      printed_pages:
+      - 497
+      historical_loci:
+      - Appendix II C12
     no_box_rewrite_in_native_core: true
-
 omitted_historical_schemas:
   A1_A6:
-    reason: "Not duplicated: the normalized prover uses B1-B6."
+    reason: Not stored as separate executable schemas. They are recovered within the normalized S1/S3 presentation;
+      they are not all literal formula-for-formula duplicates of B1-B6.
   A7:
-    historical_display: "∼◇P ⥽ ∼P"
-    reason: "Not primitive in the normalized S3 basis; to be stored after a machine-checked S1 derivation is available."
+    historical_display: ∼◇P ⥽ ∼P
+    reason: Not primitive in the normalized prover. Parry 1939 treats A1-7/B1-7 as S1 presentations; a native S1
+      certificate for A7 remains an M2 regression obligation.
   B9:
-    reason: "Existence postulate; outside the S1-S5 propositional/modal core requested for M0."
+    reason: Existence postulate; outside the S1-S5 propositional/modal core requested for M0.

@@ -52,7 +52,7 @@ The machine-oriented bases are:
 | S4 | B1–B7 + C10 |
 | S5 | B1–B7 + C11 |
 
-A1–A6 are not duplicated because they coincide with B1–B6 in the relevant normalized presentation. A7 is treated as an S1-derived theorem rather than a primitive schema. The alternative S5 basis `S1 + C10 + C12` is to be admitted only through a checked bridge certificate.
+A1–A6 are not stored as a second executable axiom list. This is a normalization/derivability decision, not a claim that all six are literal copies of B1–B6; in particular the A-series presentation contains forms that must be recovered from S1. A7 is treated as an S1-derived theorem rather than a primitive schema. The alternative S5 basis `S1 + C10 + C12` is to be admitted only through a checked bridge certificate.
 
 ## Primitive proof operations
 
