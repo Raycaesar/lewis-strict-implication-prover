@@ -1,0 +1,138 @@
+spec_version: "0.1"
+component: rules
+project: lewis-strict-implication-prover
+status: draft_m0
+
+scope:
+  theorem_mode_only: true
+  assumptions_supported_in_m0: false
+  note: "The initial prover establishes theorems of S1-S5. Premise consequence may be added later as a separate layer."
+
+primitive_rules:
+  Sa:
+    name: Substitution
+    historical_label: Sa
+    kind: uniform_substitution
+    premise_count: 1
+    premise_requirement: "certified theorem or postulate schema"
+    conclusion: "uniform substitution instance of the premise"
+    certificate:
+      required_fields:
+        - source
+        - substitution
+      substitution_format:
+        key: "object propositional variable"
+        value: "formula AST"
+      constraints:
+        - "Every occurrence of a substituted variable is replaced uniformly."
+        - "Simultaneous substitution is capture-free; the M0 language has no binders."
+    renderer_example: "Sa[p := ◇q]"
+
+  Sb:
+    name: Substitution of Equivalents
+    historical_label: Sb
+    kind: replacement_of_strict_equivalents
+    premise_count: 2
+    premises:
+      equivalence: "a certified theorem of the form A equiv_s B"
+      target: "a certified theorem containing the selected occurrence of A or B"
+    conclusion: "the target theorem after replacing the selected occurrence by its strict equivalent"
+    certificate:
+      required_fields:
+        - equivalence_line
+        - target_line
+        - direction
+        - occurrence_path
+      direction_values:
+        - left_to_right
+        - right_to_left
+      occurrence_path: "structural path in the surface formula AST; paths are checked, not trusted"
+    constraints:
+      - "The equality sign '=' is never used as the premise relation; the premise connective is object-language equiv_s."
+      - "Replacement may occur inside any object-language formula context represented by the AST."
+      - "The target must already be a theorem; Sb is not a free congruence rule over arbitrary unproved formulas."
+    renderer_example: "Sb[eq 12, line 19, L→R, path=.right.arg]"
+
+  Ad:
+    name: Adjunction
+    historical_label: Ad
+    kind: adjunction
+    premise_count: 2
+    premises:
+      left: "certified theorem A"
+      right: "certified theorem B"
+    conclusion:
+      op: and
+      left: {premise: left}
+      right: {premise: right}
+    certificate:
+      required_fields: [left_line, right_line]
+    renderer_example: "Ad[7, 11]"
+
+  Smp:
+    name: Strict Modus Ponens
+    historical_label: Smp
+    aliases: ["Inference", "strict detachment"]
+    kind: strict_detachment
+    premise_count: 2
+    premises:
+      antecedent: "certified theorem A"
+      implication: "certified theorem A strict_imp B"
+    conclusion: "B"
+    certificate:
+      required_fields: [antecedent_line, implication_line]
+    renderer_example: "Smp[5, 9]"
+
+kernel_certificate_kinds:
+  postulate_instance:
+    primitive_status: "kernel entry form for an instance of a registered postulate schema"
+    required_fields:
+      - schema_id
+      - substitution
+    check:
+      - "Look up schema_id in schemas.yaml."
+      - "Apply the recorded uniform substitution to schema metavariables."
+      - "Require exact AST identity with the certified conclusion."
+    historical_rendering: "Render as the schema label, optionally followed by Sa[...] when the instance is non-trivial."
+
+  rule_application:
+    required_fields:
+      - rule_id
+      - premises
+      - payload
+    check: "Dispatch only to one of Sa, Sb, Ad, Smp in M0/M1."
+
+non_rules:
+  definition_expansion:
+    is_inference_rule: false
+    treatment: "parser/elaborator normalization governed by language.yaml"
+  definition_contraction:
+    is_inference_rule: false
+    treatment: "pretty-print/surface reconstruction governed by language.yaml"
+  theorem_library_lookup:
+    is_inference_rule: false
+    treatment: "Allowed only as a macro whose stored proof DAG expands to primitive certificates accepted by the kernel."
+  system_inclusion:
+    is_inference_rule: false
+    treatment: "Reuse across systems requires a certified bridge proof; it may never be assumed from a class-inheritance relation."
+
+explicitly_forbidden_rules:
+  unrestricted_necessitation:
+    display: "A / Box A"
+    enabled: false
+    reason: "Not a primitive L&L rule and Box is absent from the M0 object language."
+  material_modus_ponens:
+    enabled: false
+    reason: "Material implication is absent from the M0 native core."
+  semantic_validity:
+    enabled: false
+    reason: "Kripke, matrix, algebraic, topological, truth-table, or other semantic validity is not a proof step."
+  tableau_closure:
+    enabled: false
+  sequent_rule:
+    enabled: false
+  natural_deduction_rule:
+    enabled: false
+
+trusted_kernel_invariant:
+  statement: "Every accepted theorem certificate reduces to registered postulate instances plus Sa, Sb, Ad, and Smp, with notation elaboration treated only at the meta-level."
