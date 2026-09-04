@@ -1,0 +1,1 @@
+# lewis-strict-implication-prover
