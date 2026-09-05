@@ -1,4 +1,4 @@
-register_version: '0.5'
+register_version: '0.6'
 project: lewis-strict-implication-prover
 stage: M0
 status: candidate_source_audit
@@ -90,7 +90,7 @@ language_and_definitions:
       on this at p. 124. The kernel-level status of equiv_s therefore requires an explicit normalization decision
       before M0 freeze.
     status: source_verified
-    project_normalization_status: M0.5 retains equiv_s as a first-class surface node with explicit checked definition_conversion,
+    project_normalization_status: M0.6 retains equiv_s as a first-class surface node with explicit checked definition_conversion,
       single-authority certificate semantics, and no implicit rule-time elaboration.
 primitive_operations:
   Sa:
@@ -450,3 +450,7 @@ certificate_contract:
   human_documentation_status: nonnormative_rendering_of_canonical_contract
   candidate_lock: audit/m0/certificate_contract_lock.yaml
   status: repair_implemented_reaudit_pending
+  canonical_document_boundary:
+    serialized_format: utf8_json_rfc8259_object
+    duplicate_mapping_keys_policy: reject_before_mapping_construction
+    decoder_conformance_fixture: scripts/certificate_document_conformance.py

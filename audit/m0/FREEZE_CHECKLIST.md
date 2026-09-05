@@ -1,20 +1,34 @@
-# M0.5 freeze checklist
+# M0.6 freeze checklist
 
-- [ ] exact candidate commit recorded
+## Local candidate
+
 - [ ] `python scripts/validate_spec.py`
 - [ ] `python scripts/validate_source_register.py`
 - [ ] `python scripts/validate_spec.py --freeze`
 - [ ] `python scripts/validate_source_register.py --freeze`
 - [ ] `pytest`
-- [ ] `git ls-files '*:Zone.Identifier'` empty
+- [ ] `git ls-files '*:Zone.Identifier'` prints nothing
 - [ ] exact-SHA GitHub Actions green
-- [x] one machine-readable certificate authority only
-- [x] legacy semantic registries removed
-- [x] human certificate prose explicitly nonnormative
-- [x] whole canonical contract fingerprinted
-- [x] nine former false-positive mutations have direct rejection tests
-- [x] legacy registry injection tests exist
-- [ ] independent narrow P2 closure recheck returns
+
+## M0.6 narrow repair
+
+- [x] duplicate mapping/object keys rejected before mapping construction
+- [x] policy stored inside the sole canonical contract
+- [x] one trusted serialized format fixed: strict UTF-8 JSON object
+- [x] duplicate detection recursive at every JSON object
+- [x] nonstandard NaN/Infinity rejected
+- [x] document conformance fixture added
+- [x] duplicate root fixture added
+- [x] duplicate nested justification fixture added
+- [x] duplicate nested formula fixture added
+- [x] canonical policy mutation fails freeze validation
+- [x] whole-contract lock recomputed over contract v1.1
+- [x] M0-C05 reopened pending independent recheck
+
+## Independent closure
+
+- [ ] exact candidate SHA inserted into M0.6 closure prompt
+- [ ] focused Work Max recheck returns first line exactly:
   `M0 FOUNDATIONAL SPECIFICATION CERTIFIED`
 
-Only then mark M0 frozen and begin M1.
+Only then perform the administrative frozen-status commit and begin M1.

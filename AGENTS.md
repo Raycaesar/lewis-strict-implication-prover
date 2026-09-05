@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-M0.5 is a narrow freeze-integrity closure candidate. Do not implement M1 until
+M0.6 is a narrow certificate-document-boundary closure candidate. Do not implement M1 until
 an exact-SHA independent recheck certifies M0.
 
 ## Machine-readable authorities
@@ -62,3 +62,12 @@ proof steps, mixed-basis S5 checking, or implicit definition conversion.
 The entire canonical certificate contract is fingerprinted. A deliberate
 contract+fingerprint change is a foundational change requiring focused
 independent re-audit.
+
+
+## Canonical serialized certificate boundary
+
+M0.6 admits exactly `utf8_json_rfc8259_object` at the trusted certificate-document boundary. Every JSON object must have unique member names. Duplicate names are rejected recursively before mapping construction. A permissive first-wins/last-wins decoder is nonconforming.
+
+The authoritative strict-profile details—including UTF-8/BOM handling, decoded-value types, and Unicode-string policy—are only those in `canonical_certificate_contract.document_boundary`.
+
+Do not infer certificate parser behavior from the specification YAML loader. Implement the `canonical_certificate_contract.document_boundary` exactly.

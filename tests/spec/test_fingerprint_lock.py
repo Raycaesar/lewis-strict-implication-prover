@@ -28,7 +28,7 @@ def test_contract_lock_matches_current_canonical_contract(repo_root, spec_bundle
     )
     actual = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     assert lock["canonical_contract_sha256"] == actual
-    assert lock["repair_parent_commit"] == "5f86547a2f16e5f1e1620823e3b68457fb8350b7"
+    assert lock["repair_parent_commit"] == "5436a3d2a8a7eecefc26712c2505f1b271c4c200"
 
 
 def test_any_canonical_contract_mutation_breaks_freeze_lock(spec_bundle):

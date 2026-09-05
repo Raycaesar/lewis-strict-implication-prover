@@ -1,4 +1,4 @@
-# Executable M0.5 specification
+# Executable M0.6 specification
 
 The certificate-semantics authority is exactly:
 

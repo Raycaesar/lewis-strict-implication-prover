@@ -5,29 +5,59 @@ systems S1–S5.
 
 ## Current status
 
-**M0.5 narrow P2 closure candidate.**
+**M0.6 narrow certificate-document-boundary closure candidate.**
 
-The second Work Max closure recheck found:
+The latest Work Max recheck of the M0.5 candidate found:
 
 ```text
 P0: none
-P1: none
-P2: one freeze-integrity defect
+P1: one certificate-document boundary regression
+P2: one dependent freeze/accounting defect
 ```
 
-M0.5 repairs only that P2. The formula/definition ASTs and normalized bases are
-unchanged.
+The exact defect was narrow: M0.5 correctly created one machine-readable
+certificate authority, but while deleting the old duplicate registry it failed
+to migrate the already accepted rule that duplicate serialized mapping/object
+keys must be rejected before logical checking.
 
-## Single certificate authority
+M0.6 restores that rule **inside the existing sole authority** and adds a
+canonical document-decoding boundary plus direct document-level rejection
+tests.
 
-The sole machine-readable certificate contract is:
+The formula/definition ASTs, normalized S1–S5 bases, and S5 bridge orientation
+are unchanged.
+
+## Sole certificate authority
+
+The sole machine-readable certificate contract remains:
 
 ```text
 spec/rules.yaml#canonical_certificate_contract
 ```
 
-Former duplicate semantic mirrors have been removed. Human certificate
-documentation is explicitly nonnormative.
+The document-decoding rule is a subtree of that same authority:
+
+```text
+spec/rules.yaml#canonical_certificate_contract.document_boundary
+```
+
+No `certificate_serialization` mirror or second executable certificate grammar
+is reintroduced.
+
+## Canonical trusted serialized form
+
+M0.6 accepts exactly one trusted serialized certificate form at the kernel
+boundary:
+
+```text
+strict UTF-8 JSON object
+```
+
+Duplicate object-member names are rejected recursively before construction of
+the logical mapping. A first-wins/last-wins decoder is nonconforming.
+
+Other import/UI formats may exist only outside the trusted boundary and must be
+converted to this canonical JSON form first.
 
 ## Validation
 
@@ -44,12 +74,12 @@ python scripts/validate_spec.py
 python scripts/validate_source_register.py
 python scripts/validate_spec.py --freeze
 python scripts/validate_source_register.py --freeze
-pytest
+python -m pytest
 ```
 
 ## M1 gate
 
-M1 must not begin until the exact M0.5 candidate receives:
+M1 must not begin until an exact-SHA M0.6 closure recheck returns:
 
 ```text
 M0 FOUNDATIONAL SPECIFICATION CERTIFIED

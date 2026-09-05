@@ -137,9 +137,14 @@ The future bridge library must still provide checked native certificates.
 
 ## 10. Current Parry wording invariant
 
-Every active M0.5 Parry S3 provenance field must state the reduced list 11.1-11.4, 11.6, 11.7, 30.1/A8 and the McKinsey derivation of 11.5. Shorthand claiming that Parry literally takes all 11.1-11.7 as primitive postulates is forbidden.
+Every active M0.6 Parry S3 provenance field must state the reduced list 11.1-11.4, 11.6, 11.7, 30.1/A8 and the McKinsey derivation of 11.5. Shorthand claiming that Parry literally takes all 11.1-11.7 as primitive postulates is forbidden.
 
 
-## 11. M0.5 certificate-source authority
+## 11. Single certificate-source authority (introduced in M0.5, retained in M0.6)
 
 Certificate acceptance semantics are not historical-source claims. For machine implementation, the sole active certificate-semantics authority is `spec/rules.yaml#canonical_certificate_contract`. Human certificate prose is explicitly nonnormative rendering and may not override that object.
+
+
+## 12. M0.6 certificate document boundary
+
+The single machine-readable certificate authority remains `spec/rules.yaml#canonical_certificate_contract`. M0.6 restores the previously accepted serialization invariant that duplicate certificate mapping/object keys are rejected before logical mapping construction. The canonical trusted serialized format is strict UTF-8 JSON object input; other frontend formats are outside the M0 kernel boundary.

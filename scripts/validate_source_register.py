@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate M0.5 source/provenance and closure-readiness registers."""
+"""Validate M0.6 source/provenance and closure-readiness registers."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from scripts.validate_spec import (
     load_spec_bundle,
 )
 
-EXPECTED_REGISTER_VERSION = "0.5"
+EXPECTED_REGISTER_VERSION = "0.6"
 DEFAULT_REGISTER = Path("audit/m0/source_register.yaml")
 DEFAULT_OBLIGATIONS = Path("audit/m0/foundational_obligations.yaml")
 
@@ -47,7 +47,7 @@ PARRY_FORBIDDEN_PHRASES = (
     "11.1-11.7 plus 30.1/A8",
     "with 11.1-11.7",
 )
-THIRD_REPAIR_PENDING = {"M0-V02", "M0-V03", "M0-FP03"}
+CURRENT_REPAIR_PENDING = {"M0-C05", "M0-C06", "M0-V04", "M0-FP04"}
 
 
 def _load(path: Path) -> Mapping[str, Any]:
@@ -129,6 +129,13 @@ def validate_source_register(
         issues.append(ValidationIssue("CONTRACT_DOC_STATUS", "human certificate docs must be explicitly nonnormative renderings"))
     if cc.get("candidate_lock") != "audit/m0/certificate_contract_lock.yaml":
         issues.append(ValidationIssue("CONTRACT_LOCK_REF", "contract lock reference drift"))
+    boundary = cc.get("canonical_document_boundary", {})
+    if boundary.get("serialized_format") != "utf8_json_rfc8259_object":
+        issues.append(ValidationIssue("CONTRACT_DOCUMENT_FORMAT", "source register canonical document format drift"))
+    if boundary.get("duplicate_mapping_keys_policy") != "reject_before_mapping_construction":
+        issues.append(ValidationIssue("CONTRACT_DUPLICATE_KEYS", "source register duplicate-key policy drift"))
+    if boundary.get("decoder_conformance_fixture") != "scripts/certificate_document_conformance.py":
+        issues.append(ValidationIssue("CONTRACT_DECODER_FIXTURE", "source register decoder fixture reference drift"))
     if cc.get("status") not in {"repair_implemented_reaudit_pending", "closed"}:
         issues.append(ValidationIssue("CONTRACT_STATUS", "certificate-contract source-register status invalid"))
 
@@ -178,16 +185,31 @@ def validate_source_register(
         issues.append(ValidationIssue("FREEZE_POLICY", "freeze_allowed_with_open_blockers must remain false"))
 
     if freeze:
-        missing = THIRD_REPAIR_PENDING - set(obligations)
+        missing = CURRENT_REPAIR_PENDING - set(obligations)
         if missing:
-            issues.append(ValidationIssue("THIRD_REPAIR_COVERAGE", f"missing M0.5 repair obligations: {sorted(missing)}"))
+            issues.append(
+                ValidationIssue(
+                    "CURRENT_REPAIR_COVERAGE",
+                    f"missing M0.6 duplicate-key repair obligations: {sorted(missing)}",
+                )
+            )
 
-        for oid in THIRD_REPAIR_PENDING & set(obligations):
+        for oid in CURRENT_REPAIR_PENDING & set(obligations):
             st = obligations[oid].get("status")
             if register_status == "candidate_source_audit" and st != "repair_implemented_reaudit_pending":
-                issues.append(ValidationIssue("THIRD_REPAIR_STATUS", f"{oid} must await re-audit in candidate mode"))
+                issues.append(
+                    ValidationIssue(
+                        "CURRENT_REPAIR_STATUS",
+                        f"{oid} must await re-audit in candidate mode",
+                    )
+                )
             if register_status == "frozen_source_audit" and st != "closed":
-                issues.append(ValidationIssue("FROZEN_REPAIR_STATUS", f"{oid} must be closed in frozen mode"))
+                issues.append(
+                    ValidationIssue(
+                        "FROZEN_CURRENT_REPAIR_STATUS",
+                        f"{oid} must be closed in frozen mode",
+                    )
+                )
 
         if register_status == "frozen_source_audit":
             pending_ids = [

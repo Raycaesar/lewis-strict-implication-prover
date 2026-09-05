@@ -8,7 +8,7 @@ Search may use sophisticated modern algorithms, but every accepted proof must co
 
 # M0 — Specification normalization
 
-Current stage: **M0.5 narrow P2 closure candidate**.
+Current stage: **M0.6 duplicate-key boundary closure candidate**.
 
 ### Deliverables
 
@@ -206,3 +206,8 @@ Closes closed-world certificate serialization, operational S5 bridge direction, 
 # M0.5 — single-authority freeze repair
 
 Remove duplicate certificate-semantics mirrors, make `canonical_certificate_contract` the sole machine-readable authority, fingerprint the entire contract, replay all nine M0.4 accepted mutations, and run one narrow P2 closure recheck. M1 remains gated.
+
+
+# M0.6 — duplicate-key boundary restoration
+
+Restores the duplicate mapping/object-key rejection invariant lost during the M0.5 single-authority migration, defines the canonical strict JSON decoding boundary, adds document-level conformance fixtures, and reopens the closed-world serialization obligation pending one narrow exact-SHA recheck. No formula, definition, basis, or S5 bridge change.

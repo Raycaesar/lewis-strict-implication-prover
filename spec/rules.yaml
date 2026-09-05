@@ -1,4 +1,4 @@
-spec_version: '0.5'
+spec_version: '0.6'
 component: rules
 project: lewis-strict-implication-prover
 status: candidate_m0
@@ -7,7 +7,7 @@ scope:
   assumptions_supported_in_m0: false
   note: The initial prover establishes theorems of S1-S5. Premise consequence may be added later as a separate layer.
 canonical_certificate_contract:
-  contract_version: '1.0'
+  contract_version: '1.1'
   authority: sole_machine_readable_certificate_authority
   closed_world: true
   unknown_fields_policy: reject
@@ -215,6 +215,25 @@ canonical_certificate_contract:
     root_conclusion_exactly_equals_goal: true
     line_numbers_are_nonnormative_renderer_output: true
   metadata_policy: no_metadata_inside_trusted_logical_certificate
+  document_boundary:
+    canonical_serialized_format: utf8_json_rfc8259_object
+    accepted_serialized_formats_at_kernel_boundary:
+    - utf8_json_rfc8259_object
+    alternative_frontend_formats: May exist only outside the trusted M0 kernel boundary and must be converted to the
+      canonical JSON document before certificate-document acceptance.
+    text_decoding: utf8_strict
+    top_level_document_type: json_object
+    duplicate_mapping_keys_policy: reject_before_mapping_construction
+    duplicate_key_scope: recursive_all_json_objects
+    duplicate_key_identity: exact_unicode_codepoint_sequence_after_json_string_decoding
+    parser_collapse_before_duplicate_detection: forbidden
+    nonstandard_json_constants: reject_nan_infinity_negative_infinity
+    logical_validation_begins: only_after_successful_strict_document_decode
+    decoder_conformance_fixture: scripts/certificate_document_conformance.py
+    utf8_bom_policy: reject
+    decoded_string_policy: unicode_scalar_values_only_no_surrogates
+    decoded_value_types: objects_arrays_strings_only
+    numbers_booleans_null_policy: reject_before_logical_validation
 lewis_operations:
   Sa:
     project_label: Sa

@@ -13,7 +13,7 @@ A contribution that blurs these layers will not be accepted even if it proves th
 Read:
 
 - `AGENTS.md`
-- `docs/FOUNDATIONAL_SPEC_v0.5.md`
+- `docs/FOUNDATIONAL_SPEC_v0.6.md`
 - `docs/SOURCE_POLICY.md`
 - `docs/ARCHITECTURE.md`
 - `docs/PROOF_CERTIFICATE_SPEC.md`

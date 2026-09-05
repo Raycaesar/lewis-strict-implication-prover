@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Validate the Lewis S1–S5 M0.5 executable specification.
+"""Validate the Lewis S1–S5 M0.6 executable specification.
 
-M0.5 has exactly one machine-readable certificate-semantics authority:
+M0.6 has exactly one machine-readable certificate-semantics authority:
 `spec/rules.yaml#canonical_certificate_contract`.
 
 Normal mode validates structure and key invariants.
@@ -25,7 +25,7 @@ from typing import Any, Mapping, Sequence
 import yaml
 
 PROJECT = "lewis-strict-implication-prover"
-EXPECTED_VERSION = "0.5"
+EXPECTED_VERSION = "0.6"
 EXPECTED_AST_OPS = frozenset({"atom", "neg", "and", "poss", "strict_imp", "or", "equiv_s"})
 EXPECTED_PRIMITIVE_RULES = ("Sa", "Sb", "Ad", "Smp")
 EXPECTED_CERTIFICATE_KINDS = (
@@ -84,13 +84,31 @@ EXPECTED_KIND_FIELDS = {
     "definition_conversion": ["kind", "parents", "definition_id", "direction", "occurrence_path"],
 }
 
+EXPECTED_DOCUMENT_BOUNDARY = {
+    "canonical_serialized_format": "utf8_json_rfc8259_object",
+    "accepted_serialized_formats_at_kernel_boundary": ["utf8_json_rfc8259_object"],
+    "text_decoding": "utf8_strict",
+    "top_level_document_type": "json_object",
+    "duplicate_mapping_keys_policy": "reject_before_mapping_construction",
+    "duplicate_key_scope": "recursive_all_json_objects",
+    "duplicate_key_identity": "exact_unicode_codepoint_sequence_after_json_string_decoding",
+    "parser_collapse_before_duplicate_detection": "forbidden",
+    "nonstandard_json_constants": "reject_nan_infinity_negative_infinity",
+    "logical_validation_begins": "only_after_successful_strict_document_decode",
+    "decoder_conformance_fixture": "scripts/certificate_document_conformance.py",
+    "utf8_bom_policy": "reject",
+    "decoded_string_policy": "unicode_scalar_values_only_no_surrogates",
+    "decoded_value_types": "objects_arrays_strings_only",
+    "numbers_booleans_null_policy": "reject_before_logical_validation",
+}
+
 AUDITED_FORMULA_COMMIT = "4931e4daa124587a789ac27b841f499295facf5e"
 FORMULA_NONREGRESSION_COMMIT = "5339a5a4f4c56a5e4feae3cc452730e488a309f1"
 AST_LOCK_VERSION = "0.2"
 
-CONTRACT_LOCK_VERSION = "0.1"
-CONTRACT_REPAIR_PARENT = "5f86547a2f16e5f1e1620823e3b68457fb8350b7"
-CONTRACT_VERSION = "1.0"
+CONTRACT_LOCK_VERSION = "0.2"
+CONTRACT_REPAIR_PARENT = "5436a3d2a8a7eecefc26712c2505f1b271c4c200"
+CONTRACT_VERSION = "1.1"
 
 
 class DuplicateKeyError(ValueError):
@@ -344,6 +362,28 @@ def _check_rules(bundle, issues):
         issues.append(ValidationIssue("CONTRACT_AUTHORITY", "canonical contract must be the sole machine-readable authority"))
     if contract.get("closed_world") is not True or contract.get("unknown_fields_policy") != "reject":
         issues.append(ValidationIssue("CONTRACT_CLOSED_WORLD", "canonical contract must be closed-world/reject unknown fields"))
+
+    document_boundary = _m(
+        contract.get("document_boundary"),
+        "canonical_certificate_contract.document_boundary",
+        issues,
+    )
+    for key, value in EXPECTED_DOCUMENT_BOUNDARY.items():
+        if document_boundary.get(key) != value:
+            issues.append(
+                ValidationIssue(
+                    "CONTRACT_DOCUMENT_BOUNDARY",
+                    f"document_boundary.{key} must be {value!r}",
+                )
+            )
+    frontend_note = str(document_boundary.get("alternative_frontend_formats", ""))
+    if "outside the trusted M0 kernel boundary" not in frontend_note or "canonical JSON" not in frontend_note:
+        issues.append(
+            ValidationIssue(
+                "CONTRACT_DOCUMENT_FRONTEND",
+                "alternative frontend formats must be outside the trusted boundary and convert to canonical JSON",
+            )
+        )
 
     ids = contract.get("identifier_policy", {})
     expected_id_values = {

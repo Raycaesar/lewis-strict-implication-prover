@@ -1,5 +1,5 @@
 # Proof Certificate Specification
-## M0.5 human-readable rendering
+## M0.6 human-readable rendering
 
 **Normative status:** NONNORMATIVE RENDERING.
 
@@ -13,6 +13,23 @@ This document explains that object. It does not create a second normative
 certificate grammar. If this document and the canonical YAML differ, the YAML
 controls M1 implementation and the prose discrepancy must be reported and
 repaired.
+
+
+## Serialized document boundary
+
+The canonical contract admits exactly one trusted serialized certificate format in M0.6:
+
+```text
+UTF-8 JSON object
+```
+
+The strict decoder rejects duplicate object-member names recursively **before** any JSON object is collapsed into a mapping. Thus duplicate `root`, `goal`, `nodes`, `conclusion`, `kind`, `direction`, or any other member name is a document error rather than a last-wins/first-wins choice.
+
+Strict decoding also rejects invalid UTF-8, a UTF-8 BOM, lone Unicode surrogate scalar strings, and nonstandard JSON constants (`NaN`, `Infinity`, `-Infinity`). The M0.6 strict certificate profile contains only JSON objects, arrays, and strings; numbers, booleans, and `null` are rejected before logical validation.
+
+Logical certificate checking starts only after successful strict decoding.
+
+Other import formats, if later offered by the UI, are outside the trusted boundary and must convert to the canonical JSON document first.
 
 ## Certificate object
 
