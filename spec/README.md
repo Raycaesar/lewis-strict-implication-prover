@@ -1,27 +1,14 @@
-# Executable M0.4 Specification
+# Executable M0.5 specification
 
-The executable M0.4 candidate consists of:
+The certificate-semantics authority is exactly:
 
 ```text
-language.yaml
-rules.yaml
-schemas.yaml
-systems.yaml
+rules.yaml#canonical_certificate_contract
 ```
 
-Key invariants:
+There is no second executable certificate registry.
 
-- fishhook preserved;
-- `equiv_s` distinct from metalanguage equality;
-- no Box;
-- no B9;
-- no implicit definition conversion;
-- exact surface-AST Lewis-rule matching;
-- closed-world certificate serialization;
-- `postulate_instance` distinct from `Sa`;
-- one occurrence-path grammar;
-- every proof has `basis_id`;
-- S5 primary/alternative bases are separate;
-- S5 bridges use operational `from_basis_id` / `into_basis_id`.
+`lewis_operations` is historical provenance/label metadata only.
 
-Run both normal and `--freeze` validators before the independent closure audit.
+The validator rejects legacy duplicate certificate-semantics keys and, in
+`--freeze` mode, fingerprints the complete canonical contract.

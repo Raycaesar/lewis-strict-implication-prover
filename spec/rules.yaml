@@ -1,4 +1,4 @@
-spec_version: '0.4'
+spec_version: '0.5'
 component: rules
 project: lewis-strict-implication-prover
 status: candidate_m0
@@ -6,48 +6,220 @@ scope:
   theorem_mode_only: true
   assumptions_supported_in_m0: false
   note: The initial prover establishes theorems of S1-S5. Premise consequence may be added later as a separate layer.
-primitive_rules:
-  Sa:
-    project_label: Sa
-    name: Uniform Substitution
-    kind: uniform_substitution
-    premise_count: 1
-    premises:
-    - one already-certified theorem formula
-    conclusion: simultaneous one-pass object-atom substitution instance of the parent theorem
-    certificate_contract:
-      justification_kind: Sa
+canonical_certificate_contract:
+  contract_version: '1.0'
+  authority: sole_machine_readable_certificate_authority
+  closed_world: true
+  unknown_fields_policy: reject
+  identifier_policy:
+    string_identity: exact_unicode_codepoint_sequence_no_coercion
+    proof_id_type: nonempty_string
+    node_id_type: nonempty_string
+    root_reference_type: nonempty_string
+    parent_reference_type: nonempty_string
+    schema_id_type: nonempty_string
+    definition_id_type: nonempty_string
+    reference_resolution: exact_string_identity_no_numeric_or_text_coercion
+  top_level:
+    required_fields:
+    - proof_id
+    - system
+    - basis_id
+    - goal
+    - root
+    - nodes
+    allowed_fields:
+    - proof_id
+    - system
+    - basis_id
+    - goal
+    - root
+    - nodes
+    unknown_fields_policy: reject
+  node:
+    required_fields:
+    - conclusion
+    - justification
+    allowed_fields:
+    - conclusion
+    - justification
+    unknown_fields_policy: reject
+    node_map_key_type: nonempty_string
+  occurrence_path:
+    payload_type: list_of_strings
+    root: []
+    legal_segments:
+    - arg
+    - left
+    - right
+    traversable_fields:
+      atom: []
+      neg:
+      - arg
+      poss:
+      - arg
+      and:
+      - left
+      - right
+      or:
+      - left
+      - right
+      strict_imp:
+      - left
+      - right
+      equiv_s:
+      - left
+      - right
+    unknown_segments_policy: reject
+    definition_expansion_during_traversal: forbidden
+  kinds:
+    postulate_instance:
+      is_lewis_inference_rule: false
+      parent_arity: 0
+      required_fields:
+      - kind
+      - schema_id
+      - schema_substitution
+      allowed_fields:
+      - kind
+      - schema_id
+      - schema_substitution
+      unknown_fields_policy: reject
+      schema_substitution:
+        key_namespace: schema_metavariables
+        domain_policy: exact_schema_metavariable_set
+        missing_keys_policy: reject
+        extra_keys_policy: reject
+        value_type: object_formula_without_schema_metavariables
+        application_policy: single_simultaneous_instantiation
+      schema_admission_policy: schema_id_must_be_primitive_in_declared_basis_id
+      conclusion_policy: exact_surface_ast_of_instantiated_schema
+    Sa:
+      is_lewis_inference_rule: true
+      parent_arity: 1
+      parent_roles:
+      - source_theorem
       required_fields:
       - kind
       - parents
       - atom_substitution
-      parents:
-        length: 1
-        order:
-        - source_theorem
-      atom_substitution:
-        key_namespace: object atom names only
-        value: object formula AST containing no schema metavariables
-        domain: non-empty subset of atom names occurring in the parent formula
-        unmentioned_atoms: fixed
-        application: simultaneous, one-pass, nonrecursive into replacement values
-        extra_keys_not_in_parent: reject
-        domain_policy: nonempty_subset_of_parent_object_atoms
-        extra_keys_policy: reject
-        unmentioned_atoms_policy: identity
-        application_policy: simultaneous_one_pass_nonrecursive
-        replacement_values_rewritten_by_same_substitution: false
       allowed_fields:
       - kind
       - parents
       - atom_substitution
       unknown_fields_policy: reject
-    constraints:
-    - Sa never substitutes schema metavariables; those belong only to postulate_instance.
-    - All substituted occurrences of an object atom are replaced uniformly.
-    - The parent must already be accepted; M0 theorem mode has no open assumptions.
-    - No implicit definition conversion is performed while checking Sa.
-    renderer_example: Sa 12 [p := ◇q]
+      atom_substitution:
+        key_namespace: object_atom_names
+        domain_policy: nonempty_subset_of_parent_object_atoms
+        extra_keys_policy: reject
+        unmentioned_atoms_policy: identity
+        value_type: object_formula_without_schema_metavariables
+        application_policy: simultaneous_one_pass_nonrecursive
+        replacement_values_rewritten_by_same_substitution: false
+      implicit_definition_conversion: reject
+      conclusion_policy: exact_surface_ast_after_atom_substitution
+    Sb:
+      is_lewis_inference_rule: true
+      parent_arity: 2
+      parent_roles:
+      - equivalence_parent
+      - target_parent
+      required_fields:
+      - kind
+      - parents
+      - direction
+      - occurrence_path
+      allowed_fields:
+      - kind
+      - parents
+      - direction
+      - occurrence_path
+      unknown_fields_policy: reject
+      direction_values:
+      - left_to_right
+      - right_to_left
+      equivalence_root_policy: exact_surface_equiv_s
+      selected_occurrence_match_policy: exact_surface_ast_source_side
+      replacement_count: 1
+      root_replacement_allowed: true
+      implicit_definition_conversion: reject
+      conclusion_policy: exact_target_ast_after_one_selected_replacement
+    Ad:
+      is_lewis_inference_rule: true
+      parent_arity: 2
+      parent_roles:
+      - left_parent
+      - right_parent
+      required_fields:
+      - kind
+      - parents
+      allowed_fields:
+      - kind
+      - parents
+      unknown_fields_policy: reject
+      conclusion_policy: exact_and_of_parent_conclusions_in_parent_order
+      implicit_commutativity_or_reassociation: reject
+      implicit_definition_conversion: reject
+    Smp:
+      is_lewis_inference_rule: true
+      parent_arity: 2
+      parent_roles:
+      - antecedent_parent
+      - implication_parent
+      required_fields:
+      - kind
+      - parents
+      allowed_fields:
+      - kind
+      - parents
+      unknown_fields_policy: reject
+      implication_root_policy: exact_surface_strict_imp
+      antecedent_match_policy: exact_surface_ast
+      conclusion_policy: exact_implication_consequent
+      implicit_definition_conversion: reject
+    definition_conversion:
+      is_lewis_inference_rule: false
+      parent_arity: 1
+      parent_roles:
+      - source_parent
+      required_fields:
+      - kind
+      - parents
+      - definition_id
+      - direction
+      - occurrence_path
+      allowed_fields:
+      - kind
+      - parents
+      - definition_id
+      - direction
+      - occurrence_path
+      unknown_fields_policy: reject
+      direction_values:
+      - expand
+      - contract
+      definition_resolution_policy: registered_metadefinition_only
+      metavariable_environment_policy: single_shared_environment
+      repeated_metavariable_policy: require_exact_structural_identity
+      replacement_count: 1
+      implicit_additional_conversion: reject
+      implicit_rule_matching_conversion: reject
+      conclusion_policy: exact_surface_ast_after_one_selected_definition_replacement
+  dag:
+    node_ids_unique: true
+    all_references_must_resolve: true
+    acyclic: true
+    all_nodes_reachable_from_root: true
+    parents_accepted_before_child: true
+    proof_formulas_forbid_schema_metavariables: true
+    root_conclusion_exactly_equals_goal: true
+    line_numbers_are_nonnormative_renderer_output: true
+  metadata_policy: no_metadata_inside_trusted_logical_certificate
+lewis_operations:
+  Sa:
+    project_label: Sa
+    name: Uniform Substitution
+    contract_kind: Sa
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -59,45 +231,7 @@ primitive_rules:
   Sb:
     project_label: Sb
     name: Substitution of Strict Equivalents
-    kind: replacement_of_strict_equivalents
-    premise_count: 2
-    premises:
-    - 'equivalence parent: exact surface root equiv_s(A,B)'
-    - 'target parent: one already-certified theorem containing the selected source-side occurrence'
-    conclusion: target theorem with exactly one selected occurrence replaced in the declared direction
-    certificate_contract:
-      justification_kind: Sb
-      required_fields:
-      - kind
-      - parents
-      - direction
-      - occurrence_path
-      parents:
-        length: 2
-        order:
-        - equivalence_parent
-        - target_parent
-      direction_values:
-      - left_to_right
-      - right_to_left
-      occurrence_path: uses the single normative occurrence_path_grammar below
-      allowed_fields:
-      - kind
-      - parents
-      - direction
-      - occurrence_path
-      unknown_fields_policy: reject
-      replacement_count: 1
-      implicit_definition_conversion: reject
-      equivalence_root_policy: exact_surface_equiv_s
-    constraints:
-    - The equivalence parent must have exact visible/surface root equiv_s; metalanguage equality and equal full erasures
-      do not qualify.
-    - The selected target occurrence must be structurally identical to the source side of the chosen direction.
-    - Exactly one occurrence is replaced per Sb node; multiple replacements require multiple checked nodes.
-    - Root replacement at occurrence_path [] is permitted.
-    - No implicit definition conversion is performed while checking Sb.
-    renderer_example: Sb eq=12 target=19 L→R path=.right.arg
+    contract_kind: Sb
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -109,30 +243,7 @@ primitive_rules:
   Ad:
     project_label: Ad
     name: Adjunction
-    kind: adjunction
-    premise_count: 2
-    premises:
-    - left parent theorem A
-    - right parent theorem B
-    conclusion: and(A,B) in that order
-    certificate_contract:
-      justification_kind: Ad
-      required_fields:
-      - kind
-      - parents
-      parents:
-        length: 2
-        order:
-        - left_parent
-        - right_parent
-      allowed_fields:
-      - kind
-      - parents
-      unknown_fields_policy: reject
-    constraints:
-    - No hidden commutativity or reassociation is allowed.
-    - No implicit definition conversion is performed while checking Ad.
-    renderer_example: Ad 7,11
+    contract_kind: Ad
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -143,35 +254,7 @@ primitive_rules:
   Smp:
     project_label: Smp
     name: Inference / Strict Detachment
-    aliases:
-    - Inference
-    - strict detachment
-    kind: strict_detachment
-    premise_count: 2
-    premises:
-    - antecedent parent theorem A
-    - implication parent theorem strict_imp(A,B)
-    conclusion: B
-    certificate_contract:
-      justification_kind: Smp
-      required_fields:
-      - kind
-      - parents
-      parents:
-        length: 2
-        order:
-        - antecedent_parent
-        - implication_parent
-      allowed_fields:
-      - kind
-      - parents
-      unknown_fields_policy: reject
-    constraints:
-    - The implication parent must have exact visible/surface root strict_imp.
-    - The implication antecedent must be structurally identical to the antecedent parent conclusion.
-    - No implicit definition conversion is performed while checking Smp.
-    - B7 is an object-language postulate schema and is not this metalevel operation.
-    renderer_example: Smp 5,9
+    contract_kind: Smp
     source:
       work: Lewis & Langford, Symbolic Logic
       edition: 1932
@@ -179,123 +262,13 @@ primitive_rules:
       historical_heading: Inference
       project_label_note: Smp is the project's editorial label; L&L call the operation Inference.
       feys_crosscheck: Feys 30.23
-kernel_certificate_kinds:
-  postulate_instance:
-    trusted_kind: true
-    is_lewis_inference_rule: false
-    purpose: Parentless kernel entry for one instance of a registered primitive postulate schema.
-    required_fields:
-    - kind
-    - schema_id
-    - schema_substitution
-    schema_substitution:
-      key_namespace: schema metavariables occurring in the registered schema AST
-      domain: exactly the set of metavariables occurring in that schema; no missing or extra keys
-      value: object formula AST containing no schema metavariables
-      application: single simultaneous metavariable instantiation
-      domain_policy: exact_schema_metavariable_set
-      missing_keys_policy: reject
-      extra_keys_policy: reject
-      application_policy: single_simultaneous_instantiation
-    check:
-    - schema_id is primitive in the proof's selected basis_id
-    - instantiate the registered schema with exactly the recorded schema_substitution
-    - require exact surface-AST identity with the node conclusion
-    historical_rendering: Render as the schema label. If a historical exposition wants a literal postulate followed
-      by Sa, it must provide an actual checked Sa node; direct postulate instantiation is never cosmetically relabelled
-      as Sa.
-    allowed_fields:
-    - kind
-    - schema_id
-    - schema_substitution
-    unknown_fields_policy: reject
-  Sa:
-    trusted_kind: true
-    is_lewis_inference_rule: true
-    contract: primitive_rules.Sa.certificate_contract
-    allowed_fields:
-    - kind
-    - parents
-    - atom_substitution
-    unknown_fields_policy: reject
-  Sb:
-    trusted_kind: true
-    is_lewis_inference_rule: true
-    contract: primitive_rules.Sb.certificate_contract
-    allowed_fields:
-    - kind
-    - parents
-    - direction
-    - occurrence_path
-    unknown_fields_policy: reject
-  Ad:
-    trusted_kind: true
-    is_lewis_inference_rule: true
-    contract: primitive_rules.Ad.certificate_contract
-    allowed_fields:
-    - kind
-    - parents
-    unknown_fields_policy: reject
-  Smp:
-    trusted_kind: true
-    is_lewis_inference_rule: true
-    contract: primitive_rules.Smp.certificate_contract
-    allowed_fields:
-    - kind
-    - parents
-    unknown_fields_policy: reject
-  definition_conversion:
-    trusted_kind: true
-    is_lewis_inference_rule: false
-    purpose: Checked metalinguistic use of one registered definition at exactly one surface occurrence.
-    required_fields:
-    - kind
-    - parents
-    - definition_id
-    - direction
-    - occurrence_path
-    parents:
-      length: 1
-      order:
-      - source_parent
-    direction_values:
-    - expand
-    - contract
-    check:
-    - definition_id resolves to exactly one registered metadefinition in language.yaml
-    - traverse the source parent's surface AST by occurrence_path
-    - for expand, match the selected occurrence against the definition LHS; for contract, match against the RHS
-    - use one consistent metavariable environment, including repeated metavariables
-    - instantiate the opposite side with that same environment
-    - replace exactly the selected occurrence and require exact surface-AST identity with the node conclusion
-    - perform no second implicit definition conversion
-    renderer: Df <historical definition number or definition_id>
-    allowed_fields:
-    - kind
-    - parents
-    - definition_id
-    - direction
-    - occurrence_path
-    unknown_fields_policy: reject
-    replacement_count: 1
-    metavariable_environment_policy: single_shared_environment
-    repeated_metavariable_policy: require_exact_structural_identity
-    implicit_additional_conversion: reject
-    implicit_rule_matching_conversion: reject
 non_rules:
-  definition_expansion:
-    is_inference_rule: false
-    treatment: Only through kernel certificate kind definition_conversion with direction=expand.
-  definition_contraction:
-    is_inference_rule: false
-    treatment: Only through kernel certificate kind definition_conversion with direction=contract.
+  definition_conversion:
+    note: Trusted metalinguistic certificate checking, not a fifth Lewis inference rule.
   theorem_library_lookup:
-    is_inference_rule: false
-    treatment: Allowed only as a macro whose stored proof DAG expands to primitive certificates accepted by the kernel.
+    note: Untrusted macro only; must expand to a native certificate before the kernel boundary.
   system_inclusion:
-    is_inference_rule: false
-    treatment: Reuse across systems requires a certified bridge proof; it may never be assumed from a class-inheritance
-      relation.
+    note: Never a primitive rule; cross-basis reuse requires checked bridge expansion.
 explicitly_forbidden_rules:
   unrestricted_necessitation:
     display: A / Box A
@@ -313,122 +286,3 @@ explicitly_forbidden_rules:
     enabled: false
   natural_deduction_rule:
     enabled: false
-trusted_kernel_invariant:
-  statement: Every accepted theorem certificate consists only of parentless postulate_instance nodes, the four Lewis
-    operations Sa/Sb/Ad/Smp, and explicit checked definition_conversion nodes. Definition conversion is trusted metalinguistic
-    certificate checking, not a fifth Lewis inference rule. All Lewis rule matching uses exact surface-AST structure.
-occurrence_path_grammar:
-  serialization: YAML/JSON list of field-name strings
-  root: []
-  legal_segments:
-  - arg
-  - left
-  - right
-  traversal: Starting at the surface formula root, each segment must name an actual formula-valued child field of
-    the current AST node. The atom payload field 'name' is never traversable.
-  defined_surface_nodes: or, strict_imp, and equiv_s are traversed as visible surface nodes; definitions are not expanded
-    during path traversal.
-  examples:
-  - path: []
-    meaning: root occurrence
-  - path:
-    - arg
-    meaning: child of neg or poss
-  - path:
-    - right
-    - arg
-    meaning: right child followed by unary arg
-  reject:
-  - non-list paths
-  - integer indices
-  - dotted strings in logical serialization
-  - unknown field names
-  - paths through atom.name
-  - paths that leave the formula tree
-  human_rendering: A dotted form such as .right.arg is renderer-only and is never the normative certificate payload.
-  payload_type: list_of_strings
-  segment_type: string
-  unknown_segments_policy: reject
-  atom_traversable_fields: []
-  unary_traversable_fields:
-    neg:
-    - arg
-    poss:
-    - arg
-  binary_traversable_fields:
-    and:
-    - left
-    - right
-    or:
-    - left
-    - right
-    strict_imp:
-    - left
-    - right
-    equiv_s:
-    - left
-    - right
-  definition_expansion_during_traversal: forbidden
-proof_node_grammar:
-  node_fields:
-  - conclusion
-  - justification
-  no_extra_node_fields: true
-  justification_dispatch: justification.kind must be exactly one key of kernel_certificate_kinds
-  parent_reference_field: parents
-  parent_reference_policy: All parent references use only the ordered parents list. Logical serialization never uses
-    *_line fields; line numbers are assigned only after deterministic DAG linearization.
-  allowed_node_fields:
-  - conclusion
-  - justification
-  unknown_node_fields_policy: reject
-  node_id_type: nonempty_string
-  parent_reference_type: nonempty_string
-  root_reference_type: nonempty_string
-  reference_equality: exact_string_identity_no_coercion
-  justification_unknown_fields_policy: reject
-dag_invariants:
-- Node identifiers are unique.
-- Every referenced parent and the root node exist.
-- The dependency graph is acyclic.
-- Every node is reachable from the declared root; unreachable certificate nodes are rejected.
-- Proof-formula ASTs contain object atoms but never schema metavariable nodes.
-- The root conclusion is structurally identical to the declared goal.
-certificate_serialization:
-  closed_world: true
-  unknown_fields_policy: reject
-  duplicate_mapping_keys_policy: reject
-  string_identity: exact_unicode_codepoint_sequence_no_coercion
-  top_level:
-    required_fields:
-    - proof_id
-    - system
-    - basis_id
-    - goal
-    - root
-    - nodes
-    allowed_fields:
-    - proof_id
-    - system
-    - basis_id
-    - goal
-    - root
-    - nodes
-    unknown_fields_policy: reject
-  scalar_types:
-    proof_id: nonempty_string
-    system: nonempty_string
-    basis_id: nonempty_string
-    node_id: nonempty_string
-    node_reference: nonempty_string
-    schema_id: nonempty_string
-    definition_id: nonempty_string
-    direction: nonempty_string_enum
-    occurrence_path_segment: nonempty_string
-  node_id_policy:
-    mapping_keys_must_be: nonempty_string
-    root_must_be: nonempty_string
-    parent_references_must_be: nonempty_string
-    reference_resolution: exact_string_identity_no_numeric_or_text_coercion
-  metadata_policy: No metadata or annotation field exists inside the trusted logical certificate in M0.4. Library/search
-    metadata must remain outside the kernel certificate object.

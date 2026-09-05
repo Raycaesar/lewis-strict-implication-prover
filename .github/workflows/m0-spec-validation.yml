@@ -62,11 +62,11 @@ jobs:
       - name: Validate M0 source register
         run: python scripts/validate_source_register.py
 
-      - name: Validate M0.4 spec freeze readiness
+      - name: Validate M0.5 spec freeze readiness
         run: python scripts/validate_spec.py --freeze
 
-      - name: Validate M0.4 source/audit freeze readiness
+      - name: Validate M0.5 source/audit freeze readiness
         run: python scripts/validate_source_register.py --freeze
 
       - name: Run M0 validation tests
-        run: pytest
+        run: python -m pytest

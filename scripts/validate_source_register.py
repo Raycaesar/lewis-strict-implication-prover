@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate M0.4 source/provenance and closure-readiness registers."""
+"""Validate M0.5 source/provenance and closure-readiness registers."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from scripts.validate_spec import (
     load_spec_bundle,
 )
 
-EXPECTED_REGISTER_VERSION = "0.4"
+EXPECTED_REGISTER_VERSION = "0.5"
 DEFAULT_REGISTER = Path("audit/m0/source_register.yaml")
 DEFAULT_OBLIGATIONS = Path("audit/m0/foundational_obligations.yaml")
 
@@ -41,14 +41,13 @@ ALLOWED_STATUSES = {
     "deferred_m2",
     "closed",
 }
-FREEZE_READY_STATUSES = ALLOWED_STATUSES - {"candidate_source_audit", "frozen_source_audit"}
-
 PARRY_REQUIRED_TOKENS = ("11.1-11.4", "11.6", "11.7", "30.1/A8", "11.5", "McKinsey")
 PARRY_FORBIDDEN_PHRASES = (
     "11.1-11.7 together with 30.1/A8 as postulates",
     "11.1-11.7 plus 30.1/A8",
     "with 11.1-11.7",
 )
+THIRD_REPAIR_PENDING = {"M0-V02", "M0-V03", "M0-FP03"}
 
 
 def _load(path: Path) -> Mapping[str, Any]:
@@ -65,6 +64,14 @@ def _load(path: Path) -> Mapping[str, Any]:
     return data
 
 
+def _check_path(repo_root: Path, rel: Any, label: str, issues):
+    if not isinstance(rel, str) or not rel:
+        issues.append(ValidationIssue("SOURCE_PATH", f"{label} has no repository_path"))
+        return
+    if not (repo_root / rel).exists():
+        issues.append(ValidationIssue("SOURCE_PATH_MISSING", f"{label}: {rel} missing"))
+
+
 def _check_parry_text(text: Any, label: str, issues):
     s = str(text)
     for token in PARRY_REQUIRED_TOKENS:
@@ -73,14 +80,6 @@ def _check_parry_text(text: Any, label: str, issues):
     for phrase in PARRY_FORBIDDEN_PHRASES:
         if phrase in s:
             issues.append(ValidationIssue("PARRY_INACCURATE", f"{label} retains forbidden shorthand {phrase!r}"))
-
-
-def _check_path(repo_root: Path, rel: Any, label: str, issues):
-    if not isinstance(rel, str) or not rel:
-        issues.append(ValidationIssue("SOURCE_PATH", f"{label} has no repository_path"))
-        return
-    if not (repo_root / rel).exists():
-        issues.append(ValidationIssue("SOURCE_PATH_MISSING", f"{label}: {rel} missing"))
 
 
 def validate_source_register(
@@ -100,7 +99,8 @@ def validate_source_register(
         issues.append(ValidationIssue("AUDIT_PROJECT", "source-register project mismatch"))
     if register.get("register_version") != EXPECTED_REGISTER_VERSION:
         issues.append(ValidationIssue("AUDIT_VERSION", f"register_version must be {EXPECTED_REGISTER_VERSION}"))
-    if register.get("status") not in {"candidate_source_audit", "frozen_source_audit"}:
+    register_status = register.get("status")
+    if register_status not in {"candidate_source_audit", "frozen_source_audit"}:
         issues.append(ValidationIssue("AUDIT_STATUS", "source-register status invalid"))
 
     canonical = register.get("canonical_source", {})
@@ -115,11 +115,24 @@ def validate_source_register(
     if set(register.get("primitive_schemas", {})) != set(EXPECTED_SCHEMA_IDS):
         issues.append(ValidationIssue("SCHEMA_COVERAGE", "source-register schema coverage drift"))
     if set(register.get("primitive_operations", {})) != set(EXPECTED_PRIMITIVE_RULES):
-        issues.append(ValidationIssue("RULE_COVERAGE", "source-register rule coverage drift"))
+        issues.append(ValidationIssue("RULE_COVERAGE", "source-register primitive-operation coverage drift"))
     if set(register.get("normalized_systems", {})) != set(EXPECTED_SYSTEMS):
         issues.append(ValidationIssue("SYSTEM_COVERAGE", "source-register system coverage drift"))
 
-    # Check every active Parry provenance field called out by the second closure recheck.
+    # Certificate-contract authority must point at exactly one machine-readable source.
+    cc = register.get("certificate_contract", {})
+    if cc.get("authoritative_path") != "spec/rules.yaml#canonical_certificate_contract":
+        issues.append(ValidationIssue("CONTRACT_AUTHORITY_PATH", "source register contract authority path drift"))
+    if cc.get("duplicate_machine_readable_semantics_allowed") is not False:
+        issues.append(ValidationIssue("CONTRACT_DUPLICATION", "duplicate machine-readable certificate semantics must be forbidden"))
+    if cc.get("human_documentation_status") != "nonnormative_rendering_of_canonical_contract":
+        issues.append(ValidationIssue("CONTRACT_DOC_STATUS", "human certificate docs must be explicitly nonnormative renderings"))
+    if cc.get("candidate_lock") != "audit/m0/certificate_contract_lock.yaml":
+        issues.append(ValidationIssue("CONTRACT_LOCK_REF", "contract lock reference drift"))
+    if cc.get("status") not in {"repair_implemented_reaudit_pending", "closed"}:
+        issues.append(ValidationIssue("CONTRACT_STATUS", "certificate-contract source-register status invalid"))
+
+    # Retain the already-closed Parry/provenance checks.
     parry_fields = {
         "source_register.secondary_sources.PARRY1939.use[0]":
             register.get("secondary_sources", {}).get("PARRY1939", {}).get("use", [""])[0],
@@ -139,15 +152,13 @@ def validate_source_register(
     for label, text in parry_fields.items():
         _check_parry_text(text, label, issues)
 
-    # L&L p.498 background + p.501 direct basis source.
     bridges = register.get("bridge_source_claims", {})
     for bid in ("C11_DERIVES_C10", "C11_DERIVES_C12", "C10_C12_DERIVE_C11"):
         entry = bridges.get(bid, {})
         qual = str(entry.get("source_qualification", ""))
         if "A1-A8" not in qual or "B1-B9" not in qual or "not a native B1-B7 bridge certificate" not in qual:
             issues.append(ValidationIssue("P498_QUALIFICATION", f"{bid} p.498 qualification incomplete"))
-        p501 = entry.get("canonical_s5_basis_source", {})
-        if p501.get("printed_page") != 501:
+        if entry.get("canonical_s5_basis_source", {}).get("printed_page") != 501:
             issues.append(ValidationIssue("P501_SOURCE", f"{bid} must cite p.501"))
 
     obligations = obligations_doc.get("obligations", {})
@@ -160,24 +171,23 @@ def validate_source_register(
             issues.append(ValidationIssue("OBLIGATION_ENTRY", f"{oid} malformed"))
             continue
         st = item.get("status")
-        if st not in FREEZE_READY_STATUSES:
-            issues.append(ValidationIssue("OBLIGATION_STATUS", f"{oid} has non-ready/unknown status {st!r}"))
+        if st not in ALLOWED_STATUSES - {"candidate_source_audit", "frozen_source_audit"}:
+            issues.append(ValidationIssue("OBLIGATION_STATUS", f"{oid} has unknown/non-ready status {st!r}"))
 
     if obligations_doc.get("freeze_allowed_with_open_blockers") is not False:
-        issues.append(ValidationIssue("FREEZE_POLICY", "freeze_allowed_with_open_blockers must be false"))
+        issues.append(ValidationIssue("FREEZE_POLICY", "freeze_allowed_with_open_blockers must remain false"))
 
     if freeze:
-        required_second_repair = {"M0-C05", "M0-B03", "M0-P02", "M0-V02", "M0-DOC02", "M0-FP02"}
-        missing = required_second_repair - set(obligations)
+        missing = THIRD_REPAIR_PENDING - set(obligations)
         if missing:
-            issues.append(ValidationIssue("REPAIR_COVERAGE", f"missing second-audit repair obligations: {sorted(missing)}"))
-        register_status = register.get("status")
-        for oid in required_second_repair & set(obligations):
-            status = obligations[oid].get("status")
-            if status not in {"repair_implemented_reaudit_pending", "closed"}:
-                issues.append(ValidationIssue("REPAIR_STATUS", f"{oid} has invalid closure status {status!r}"))
-            if register_status == "frozen_source_audit" and status != "closed":
-                issues.append(ValidationIssue("FROZEN_REPAIR_STATUS", f"{oid} must be closed once source register is frozen"))
+            issues.append(ValidationIssue("THIRD_REPAIR_COVERAGE", f"missing M0.5 repair obligations: {sorted(missing)}"))
+
+        for oid in THIRD_REPAIR_PENDING & set(obligations):
+            st = obligations[oid].get("status")
+            if register_status == "candidate_source_audit" and st != "repair_implemented_reaudit_pending":
+                issues.append(ValidationIssue("THIRD_REPAIR_STATUS", f"{oid} must await re-audit in candidate mode"))
+            if register_status == "frozen_source_audit" and st != "closed":
+                issues.append(ValidationIssue("FROZEN_REPAIR_STATUS", f"{oid} must be closed in frozen mode"))
 
         if register_status == "frozen_source_audit":
             pending_ids = [
@@ -191,6 +201,8 @@ def validate_source_register(
                         f"frozen source register cannot retain re-audit-pending obligations: {sorted(pending_ids)}",
                     )
                 )
+            if cc.get("status") != "closed":
+                issues.append(ValidationIssue("FROZEN_CONTRACT_STATUS", "certificate-contract register entry must be closed when frozen"))
 
     return tuple(issues)
 

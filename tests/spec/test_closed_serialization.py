@@ -1,57 +1,74 @@
 import copy
 
-from scripts.validate_spec import EXPECTED_JUSTIFICATION_FIELDS, validate_bundle
+from scripts.validate_spec import (
+    EXPECTED_KIND_FIELDS,
+    EXPECTED_NODE_FIELDS,
+    EXPECTED_TOP_LEVEL_CERT_FIELDS,
+    validate_bundle,
+)
 
 
-def mutate_bundle(spec_bundle, *, rules=None, systems=None, language=None, schemas=None):
+def mutated(spec_bundle, rules):
     return type(spec_bundle)(
         spec_bundle.spec_dir,
-        language or spec_bundle.language,
-        rules or spec_bundle.rules,
-        schemas or spec_bundle.schemas,
-        systems or spec_bundle.systems,
+        spec_bundle.language,
+        rules,
+        spec_bundle.schemas,
+        spec_bundle.systems,
     )
 
 
-def test_closed_world_top_level(spec_bundle):
-    ser = spec_bundle.rules["certificate_serialization"]
-    assert ser["closed_world"] is True
-    assert ser["unknown_fields_policy"] == "reject"
-    assert ser["top_level"]["required_fields"] == ["proof_id", "system", "basis_id", "goal", "root", "nodes"]
-    assert ser["top_level"]["allowed_fields"] == ser["top_level"]["required_fields"]
-
-
-def test_nonempty_string_reference_contract(spec_bundle):
-    ids = spec_bundle.rules["certificate_serialization"]["node_id_policy"]
-    assert ids["mapping_keys_must_be"] == "nonempty_string"
-    assert ids["root_must_be"] == "nonempty_string"
-    assert ids["parent_references_must_be"] == "nonempty_string"
-    assert ids["reference_resolution"] == "exact_string_identity_no_numeric_or_text_coercion"
-
-
-def test_each_justification_kind_has_exact_allowed_fields(spec_bundle):
+def test_single_machine_readable_contract_authority(spec_bundle):
     rules = spec_bundle.rules
-    for kind, expected in EXPECTED_JUSTIFICATION_FIELDS.items():
-        if kind in {"Sa", "Sb", "Ad", "Smp"}:
-            contract = rules["primitive_rules"][kind]["certificate_contract"]
-        else:
-            contract = rules["kernel_certificate_kinds"][kind]
-        assert contract["required_fields"] == expected
-        assert contract["allowed_fields"] == expected
-        assert contract["unknown_fields_policy"] == "reject"
+    assert rules["canonical_certificate_contract"]["authority"] == "sole_machine_readable_certificate_authority"
+    for legacy in (
+        "primitive_rules",
+        "kernel_certificate_kinds",
+        "occurrence_path_grammar",
+        "proof_node_grammar",
+        "dag_invariants",
+        "certificate_serialization",
+        "trusted_kernel_invariant",
+    ):
+        assert legacy not in rules
 
 
-def test_mutation_unknown_justification_fields_ignored_is_rejected(spec_bundle):
+def test_top_and_node_closed_world(spec_bundle):
+    c = spec_bundle.rules["canonical_certificate_contract"]
+    assert c["top_level"]["required_fields"] == EXPECTED_TOP_LEVEL_CERT_FIELDS
+    assert c["top_level"]["allowed_fields"] == EXPECTED_TOP_LEVEL_CERT_FIELDS
+    assert c["top_level"]["unknown_fields_policy"] == "reject"
+    assert c["node"]["required_fields"] == EXPECTED_NODE_FIELDS
+    assert c["node"]["allowed_fields"] == EXPECTED_NODE_FIELDS
+    assert c["node"]["unknown_fields_policy"] == "reject"
+
+
+def test_every_kind_has_exact_fields(spec_bundle):
+    kinds = spec_bundle.rules["canonical_certificate_contract"]["kinds"]
+    for kind, fields in EXPECTED_KIND_FIELDS.items():
+        assert kinds[kind]["required_fields"] == fields
+        assert kinds[kind]["allowed_fields"] == fields
+        assert kinds[kind]["unknown_fields_policy"] == "reject"
+
+
+def test_legacy_duplicate_semantic_registry_injection_is_rejected(spec_bundle):
+    for legacy in (
+        "primitive_rules",
+        "kernel_certificate_kinds",
+        "occurrence_path_grammar",
+        "proof_node_grammar",
+        "dag_invariants",
+        "certificate_serialization",
+        "trusted_kernel_invariant",
+    ):
+        rules = copy.deepcopy(spec_bundle.rules)
+        rules[legacy] = {"contradictory": "semantic mirror"}
+        issues = validate_bundle(mutated(spec_bundle, rules), freeze=True)
+        assert any(i.code in {"RULES_TOPLEVEL_KEYS", "LEGACY_RULES_SEMANTICS"} for i in issues), legacy
+
+
+def test_lewis_operations_cannot_hide_semantics(spec_bundle):
     rules = copy.deepcopy(spec_bundle.rules)
-    rules["proof_node_grammar"]["justification_unknown_fields_policy"] = "ignore"
-    mutated = mutate_bundle(spec_bundle, rules=rules)
-    issues = validate_bundle(mutated, freeze=True)
-    assert any(i.code == "JUSTIFICATION_UNKNOWN" for i in issues)
-
-
-def test_mutation_integer_reference_policy_is_rejected(spec_bundle):
-    rules = copy.deepcopy(spec_bundle.rules)
-    rules["certificate_serialization"]["node_id_policy"]["parent_references_must_be"] = "string_or_integer"
-    mutated = mutate_bundle(spec_bundle, rules=rules)
-    issues = validate_bundle(mutated, freeze=True)
-    assert any(i.code == "ID_TYPES" for i in issues)
+    rules["lewis_operations"]["Sa"]["constraints"] = ["extra executable semantics"]
+    issues = validate_bundle(mutated(spec_bundle, rules), freeze=True)
+    assert any(i.code == "LEWIS_OPERATION_FIELDS" for i in issues)

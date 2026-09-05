@@ -1,0 +1,9 @@
+lock_version: '0.1'
+status: candidate_m0_contract_lock
+repair_parent_commit: 5f86547a2f16e5f1e1620823e3b68457fb8350b7
+contract_path: spec/rules.yaml#canonical_certificate_contract
+contract_version: '1.0'
+canonical_contract_sha256: 3152eb49a5d268904f0b960faa52b3d57e8b90cd80d14bdbfa8550df012c4d56
+change_policy: Any change to canonical_certificate_contract or this stored hash is a foundational certificate-contract
+  change requiring focused independent re-audit. The validator cannot authenticate a deliberate simultaneous contract+hash
+  edit; exact-SHA Work Max review remains mandatory.

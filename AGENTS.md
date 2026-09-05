@@ -2,95 +2,63 @@
 
 ## Current milestone
 
-This repository is an **M0.4 second-closure-audit candidate**.
+M0.5 is a narrow freeze-integrity closure candidate. Do not implement M1 until
+an exact-SHA independent recheck certifies M0.
 
-Do not implement M1 until the exact candidate commit is independently certified.
+## Machine-readable authorities
 
-## Normative read order
-
-1. `docs/FOUNDATIONAL_SPEC_v0.4.md`
-2. `docs/PROOF_CERTIFICATE_SPEC.md`
-3. `docs/SOURCE_POLICY.md`
-4. `spec/language.yaml`
-5. `spec/rules.yaml`
-6. `spec/schemas.yaml`
-7. `spec/systems.yaml`
-8. `audit/m0/source_register.yaml`
-9. `audit/m0/foundational_obligations.yaml`
-10. `audit/m0/M0_FOUNDATIONAL_REPAIR_LOG_v0.4.md`
-
-If these disagree, stop and report the conflict.
-
-## Trusted boundary
-
-Only these certificate kinds exist at the kernel boundary:
+Formula/system authorities:
 
 ```text
-postulate_instance
-Sa
-Sb
-Ad
-Smp
-definition_conversion
+spec/language.yaml
+spec/schemas.yaml
+spec/systems.yaml
 ```
 
-Only `Sa`, `Sb`, `Ad`, and `Smp` are Lewis inference operations.
-
-All logical certificate objects are closed-world. Unknown fields are rejected.
-
-Node IDs/root/parent references are nonempty strings. Never coerce integers to
-strings or normalize identifiers before reference lookup.
-
-## Definitions
-
-No Lewis rule silently expands `or`, `strict_imp`, or `equiv_s`.
-
-Visible definitional change requires one explicit `definition_conversion`
-acting at one occurrence with one shared metavariable environment.
-
-## Basis and bridges
-
-Every proof declares `basis_id`.
-
-Never union the two S5 bases.
-
-Bridge fields are operational:
+Certificate authority:
 
 ```text
-from_basis_id
-into_basis_id
+spec/rules.yaml#canonical_certificate_contract
 ```
 
-The expanded native certificate must have:
+This is the **sole machine-readable certificate-semantics authority**.
+
+Do not implement semantics from any removed legacy registry or from explanatory
+prose.
+
+## Human documentation
+
+`docs/PROOF_CERTIFICATE_SPEC.md` and certificate sections of other Markdown
+files are nonnormative renderings. If they conflict with the canonical YAML,
+follow the YAML for implementation and report the documentation defect.
+
+## Forbidden duplicate semantic registries
+
+Do not reintroduce active top-level keys:
 
 ```text
-basis_id == into_basis_id
+primitive_rules
+kernel_certificate_kinds
+occurrence_path_grammar
+proof_node_grammar
+dag_invariants
+certificate_serialization
+trusted_kernel_invariant
 ```
 
-For S5:
+`lewis_operations` is provenance metadata only and must contain no executable
+semantics beyond a `contract_kind` link.
 
-```text
-primary -> alternative : recover C11 under the alternative basis
-alternative -> primary : recover C10,C12 under the primary basis
-```
+## Logical invariants
 
-## Forbidden shortcuts
+Do not change the audited B1–B8, A8, C10–C12 or 11.01–11.03 ASTs without a new
+foundational source audit.
 
-Do not add:
+Do not add Box, B9, unrestricted necessitation, object-language `=`, semantic
+proof steps, mixed-basis S5 checking, or implicit definition conversion.
 
-- unrestricted necessitation;
-- Box to M0;
-- B9 to M0;
-- object-language `=`;
-- implicit definition conversion;
-- semantic/tableau/sequent proof steps;
-- modern normal-modal axioms as substitutes;
-- mixed-basis S5 checking;
-- unknown-field-tolerant certificate parsing.
+## Contract change control
 
-## Formula regression lock
-
-The source-audited schema/definition ASTs are locked by
-`audit/m0/certified_ast_fingerprints.yaml`.
-
-Any AST/hash/lock-metadata edit requires explicit foundational re-audit.
+The entire canonical certificate contract is fingerprinted. A deliberate
+contract+fingerprint change is a foundational change requiring focused
+independent re-audit.

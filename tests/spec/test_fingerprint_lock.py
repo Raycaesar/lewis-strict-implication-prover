@@ -1,27 +1,43 @@
-import shutil
+import copy
+import hashlib
+import json
 import yaml
 
-import pytest
-
-from scripts.validate_spec import StrictLoader, ValidationError, validate_spec_dir
+from scripts.validate_spec import validate_bundle
 
 
-def test_fingerprint_metadata_is_locked(repo_root):
-    data = yaml.load(
-        (repo_root / "audit/m0/certified_ast_fingerprints.yaml").read_text(encoding="utf-8"),
-        Loader=StrictLoader,
+def mb(spec_bundle, rules):
+    return type(spec_bundle)(
+        spec_bundle.spec_dir,
+        spec_bundle.language,
+        rules,
+        spec_bundle.schemas,
+        spec_bundle.systems,
     )
-    assert data["lock_version"] == "0.2"
-    assert data["formula_source_audit_commit"] == "4931e4daa124587a789ac27b841f499295facf5e"
-    assert data["formula_nonregression_recheck_commit"] == "5339a5a4f4c56a5e4feae3cc452730e488a309f1"
 
 
-def test_mutated_fingerprint_metadata_fails_freeze(copied_candidate):
-    path = copied_candidate / "audit/m0/certified_ast_fingerprints.yaml"
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    data["formula_nonregression_recheck_commit"] = "0" * 40
-    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+def test_contract_lock_matches_current_canonical_contract(repo_root, spec_bundle):
+    lock = yaml.safe_load(
+        (repo_root / "audit/m0/certificate_contract_lock.yaml").read_text(encoding="utf-8")
+    )
+    canonical = json.dumps(
+        spec_bundle.rules["canonical_certificate_contract"],
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    actual = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    assert lock["canonical_contract_sha256"] == actual
+    assert lock["repair_parent_commit"] == "5f86547a2f16e5f1e1620823e3b68457fb8350b7"
 
-    with pytest.raises(ValidationError) as exc:
-        validate_spec_dir(copied_candidate / "spec", freeze=True)
-    assert any(i.code == "LOCK_RECHECK_COMMIT" for i in exc.value.issues)
+
+def test_any_canonical_contract_mutation_breaks_freeze_lock(spec_bundle):
+    rules = copy.deepcopy(spec_bundle.rules)
+    rules["canonical_certificate_contract"]["metadata_policy"] = "allow_metadata"
+    issues = validate_bundle(mb(spec_bundle, rules), freeze=True)
+    assert any(i.code in {"CONTRACT_METADATA", "FINGERPRINT_CONTRACT"} for i in issues)
+
+
+def test_existing_ast_fingerprints_still_pass(spec_dir):
+    from scripts.validate_spec import validate_spec_dir
+    validate_spec_dir(spec_dir, freeze=True)

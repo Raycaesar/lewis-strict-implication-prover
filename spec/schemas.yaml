@@ -1,4 +1,4 @@
-spec_version: '0.4'
+spec_version: '0.5'
 component: schemas
 project: lewis-strict-implication-prover
 status: candidate_m0

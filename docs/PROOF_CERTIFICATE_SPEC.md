@@ -1,232 +1,84 @@
 # Proof Certificate Specification
-## M0.4 normative candidate
+## M0.5 human-readable rendering
 
-## 1. Closed-world principle
+**Normative status:** NONNORMATIVE RENDERING.
 
-The trusted logical certificate serialization is closed-world.
-
-Unknown fields are rejected at every logical object layer. There is no
-"ignore unknown justification field" option.
-
-Top-level fields are exactly:
-
-```yaml
-proof_id: <nonempty string>
-system: <nonempty string>
-basis_id: <nonempty string>
-goal: <object formula AST>
-root: <nonempty string node id>
-nodes: <mapping from nonempty string node ids to nodes>
-```
-
-Each node is exactly:
-
-```yaml
-conclusion: <object formula AST>
-justification: <justification object>
-```
-
-Node IDs, root, and parent references are nonempty strings. Reference equality
-is exact string equality with no scalar coercion.
-
-Duplicate mapping keys are rejected before logical checking.
-
-## 2. Exact justification schemas
-
-### `postulate_instance`
-
-Allowed fields are exactly:
-
-```yaml
-kind: postulate_instance
-schema_id: <nonempty string>
-schema_substitution: <mapping>
-```
-
-No `parents` field is allowed.
-
-The schema-substitution domain is exactly the schema metavariable set of the
-registered schema. Missing and extra keys are rejected.
-
-### `Sa`
-
-Allowed fields are exactly:
-
-```yaml
-kind: Sa
-parents: [<one node id>]
-atom_substitution: <mapping>
-```
-
-The map domain is a nonempty subset of object atoms occurring in the parent.
-Extra/nonoccurring keys are rejected.
-
-Application is simultaneous, one-pass, nonrecursive into replacement values.
-Unmentioned atoms are fixed.
-
-### `Sb`
-
-Allowed fields are exactly:
-
-```yaml
-kind: Sb
-parents: [<equivalence node id>, <target node id>]
-direction: left_to_right | right_to_left
-occurrence_path: <path>
-```
-
-The first parent must have exact surface root `equiv_s`.
-
-Exactly one selected occurrence is replaced.
-
-No implicit definition conversion is allowed.
-
-### `Ad`
-
-Allowed fields are exactly:
-
-```yaml
-kind: Ad
-parents: [<left node id>, <right node id>]
-```
-
-Conclusion is exactly the ordered surface conjunction of the two parent
-conclusions.
-
-### `Smp`
-
-Allowed fields are exactly:
-
-```yaml
-kind: Smp
-parents: [<antecedent node id>, <strict-implication node id>]
-```
-
-The second parent must have exact surface root `strict_imp(A,B)` and `A` must
-be structurally identical to the first parent conclusion.
-
-### `definition_conversion`
-
-Allowed fields are exactly:
-
-```yaml
-kind: definition_conversion
-parents: [<one node id>]
-definition_id: <nonempty string>
-direction: expand | contract
-occurrence_path: <path>
-```
-
-Exactly one occurrence is changed.
-
-One shared metavariable environment is used. Repeated metavariables require
-exact structural identity.
-
-No nested/second implicit conversion is permitted.
-
-## 3. Occurrence-path grammar
-
-Paths are lists of strings.
-
-Root:
-
-```yaml
-[]
-```
-
-Legal segments:
+The sole machine-readable authority for certificate acceptance is:
 
 ```text
-arg
-left
-right
+spec/rules.yaml#canonical_certificate_contract
 ```
 
-Traversable formula fields are exactly:
+This document explains that object. It does not create a second normative
+certificate grammar. If this document and the canonical YAML differ, the YAML
+controls M1 implementation and the prose discrepancy must be reported and
+repaired.
+
+## Certificate object
+
+The canonical contract currently fixes a closed-world proof object with:
 
 ```text
-neg:        arg
-poss:       arg
-and:        left,right
-or:         left,right
-strict_imp: left,right
-equiv_s:    left,right
-atom:       none
+proof_id
+system
+basis_id
+goal
+root
+nodes
 ```
 
-`atom.name` is data, not a formula child.
-
-Defined nodes are traversed as visible surface nodes. No definition expansion
-occurs during traversal.
-
-## 4. Surface identity
-
-All Lewis primitive operations use exact surface AST identity.
-
-Full erasure of definitions is diagnostic only and never rescues a failed
-primitive-rule application.
-
-## 5. Proof DAG
-
-The checker rejects unless:
-
-- every node-map key is a nonempty string;
-- every parent/root reference is a nonempty string;
-- every reference resolves by exact string identity;
-- the dependency graph is acyclic;
-- every node is reachable from root;
-- every node is accepted after its parents;
-- root conclusion equals goal structurally.
-
-No line-number field is part of the logical certificate.
-
-## 6. Basis discipline
-
-Every proof declares one allowed `(system,basis_id)` pair.
-
-S5 primary and alternative bases are never unioned.
-
-A `postulate_instance` is admitted only when `schema_id` belongs to the exact
-primitive schema set of the declared `basis_id`.
-
-## 7. Bridge semantics
-
-Compact bridge/library objects are outside the primitive kernel vocabulary.
-
-Their operational fields are:
-
-```yaml
-from_basis_id: ...
-into_basis_id: ...
-```
-
-The expanded native certificate must satisfy:
+Each node contains only:
 
 ```text
-expanded_certificate.basis_id == into_basis_id
+conclusion
+justification
 ```
 
-A bridge must recover every primitive available in `from_basis_id` but absent
-from `into_basis_id` that the translated proof actually needs.
-
-For the two S5 bridge obligations:
+Trusted kinds are:
 
 ```text
-primary -> alternative : derive C11 under alternative
-alternative -> primary : derive C10,C12 under primary
+postulate_instance
+Sa
+Sb
+Ad
+Smp
+definition_conversion
 ```
 
-## 8. Metadata
+Only `Sa`, `Sb`, `Ad`, `Smp` are Lewis inference operations.
+`definition_conversion` is checked metalinguistic use of a registered
+definition.
 
-M0.4 trusted logical certificate objects contain no metadata field.
+## Core invariants rendered from the canonical contract
 
-Source/provenance/search metadata belongs outside the kernel certificate and
-cannot change certificate validity.
+- identifiers and references are nonempty strings;
+- reference lookup uses exact Unicode codepoint-string identity without scalar
+  coercion;
+- unknown logical fields are rejected;
+- occurrence paths are lists over `arg`, `left`, `right`;
+- `atom` has no traversable formula child;
+- no definition expansion occurs during path traversal;
+- postulate instantiation uses exactly the registered schema metavariable set;
+- `Sa` is simultaneous, one-pass and nonrecursive into replacement values;
+- `Sb` replaces exactly one selected occurrence and requires surface `equiv_s`;
+- `definition_conversion` uses one shared metavariable environment and exactly
+  one replacement;
+- all Lewis rule matching is exact on surface ASTs;
+- the proof graph is acyclic, reference-complete and root-reachable;
+- trusted certificates contain no metadata field.
 
-## 9. Primitive proof rendering
+For exact field names and values, consult the canonical YAML rather than this
+rendering.
 
-A primitive proof may retain fishhook and `equiv_s`.
+## Basis discipline
 
-"Primitive" concerns proof operations, not erasure of all defined notation.
+Every proof declares one allowed basis ID. The two S5 bases are never unioned.
 
-A separate fully-erased diagnostic view may recursively expand definitions.
+Bridge objects are outside the primitive certificate kinds. Their expansion
+must check in `into_basis_id`.
+
+## Change control
+
+Changing the canonical contract is a foundational M0 change. The whole contract
+is fingerprinted by `audit/m0/certificate_contract_lock.yaml`; changing both
+contract and lock deliberately still requires focused independent re-audit.

@@ -8,7 +8,7 @@ Search may use sophisticated modern algorithms, but every accepted proof must co
 
 # M0 — Specification normalization
 
-Current stage: **M0.4 second-closure-audit candidate**.
+Current stage: **M0.5 narrow P2 closure candidate**.
 
 ### Deliverables
 
@@ -201,3 +201,8 @@ M1 remains forbidden until the final item is achieved.
 # M0.4 — second closure repair
 
 Closes closed-world certificate serialization, operational S5 bridge direction, complete Parry provenance, freeze-gate mutation coverage, repair-log vocabulary, and fingerprint metadata. Awaiting exact-SHA second closure recheck before M1.
+
+
+# M0.5 — single-authority freeze repair
+
+Remove duplicate certificate-semantics mirrors, make `canonical_certificate_contract` the sole machine-readable authority, fingerprint the entire contract, replay all nine M0.4 accepted mutations, and run one narrow P2 closure recheck. M1 remains gated.

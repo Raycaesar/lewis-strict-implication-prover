@@ -32,8 +32,7 @@ def copied_candidate(tmp_path, repo_root):
     shutil.copytree(repo_root / "spec", tmp_path / "spec")
     shutil.copytree(repo_root / "audit/m0", tmp_path / "audit/m0")
 
-    # Freeze-mode source validation checks registered paths. Avoid copying large
-    # PDFs by creating empty fixtures at the exact paths inside this temp repo.
+    # Freeze-mode source validation checks that registered literature paths exist.
     reg = yaml.safe_load((tmp_path / "audit/m0/source_register.yaml").read_text(encoding="utf-8"))
     paths = [reg["canonical_source"]["repository_path"]]
     for entry in reg.get("secondary_sources", {}).values():
@@ -43,5 +42,4 @@ def copied_candidate(tmp_path, repo_root):
         p = tmp_path / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text("test fixture placeholder\n", encoding="utf-8")
-
     return tmp_path

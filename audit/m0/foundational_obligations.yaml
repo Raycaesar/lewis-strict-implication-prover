@@ -1,4 +1,4 @@
-register_version: '0.4'
+register_version: '0.5'
 project: lewis-strict-implication-prover
 stage: M0
 freeze_allowed_with_open_blockers: false
@@ -291,25 +291,28 @@ obligations:
     requirement: Every trusted certificate object and justification kind has an exact allowed-field set; unknown fields
       are rejected; proof/node/reference IDs use nonempty strings with exact string identity.
     severity: P1_SECOND_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_4: spec/rules.yaml now defines closed-world top-level/node/justification serialization, exact allowed
       fields, unknown-field rejection, and nonempty-string ID/reference semantics.
+    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
   M0-B03:
     category: bridges
     title: Operational S5 bridge direction
     requirement: Bridge records must unambiguously identify the source proof basis and the basis in which the expanded
       native certificate checks.
     severity: P1_SECOND_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_4: Fields renamed to from_basis_id/into_basis_id. C11-under-C10+C12 is primary→alternative; C10/C12-under-C11
       is alternative→primary; expanded certificate basis_id must equal into_basis_id.
+    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
   M0-P02:
     category: provenance
     title: Complete Parry S3 provenance repair
     requirement: Every active Parry S3 provenance field must use the reduced-list/derived-11.5 wording.
     severity: P2_SECOND_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_4: All active spec/source-register Parry claims now use the precise reduced-list wording.
+    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
   M0-V02:
     category: validation
     title: Freeze-gate semantic contract hardening
@@ -318,20 +321,45 @@ obligations:
     severity: P2_SECOND_CLOSURE_RECHECK
     status: repair_implemented_reaudit_pending
     resolution_v0_4: validate_spec.py and mutation tests now check all seven demonstrated counter-mutations.
+    resolution_v0_5: All duplicated certificate-semantics mirrors were removed from active rules.yaml. spec/rules.yaml#canonical_certificate_contract
+      is the sole machine-readable authority; rules.yaml rejects legacy semantic top-level fields; --freeze fingerprints
+      the entire canonical contract; mutation tests cover the five accepted prior semantic replays, four accepted
+      serialization mutations, legacy duplicate-field injection, and the contract fingerprint.
+    closure_dependency: One narrow P2 exact-SHA closure recheck only.
   M0-DOC02:
     category: documentation
     title: Repair-log parent-field vocabulary
     requirement: Use the normative one-element parents list, not a singular parent field.
     severity: P2_SECOND_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
+    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
   M0-FP02:
     category: validation
     title: Fingerprint-lock metadata
     requirement: Freeze validator must check lock version and audited predecessor/nonregression commit metadata.
     severity: P2_SECOND_CLOSURE_RECHECK
+    status: closed
+    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
+  M0-V03:
+    category: validation
+    title: Single authoritative certificate contract
+    requirement: No duplicate active certificate-semantics representations may coexist. The sole machine-readable
+      authority must be spec/rules.yaml#canonical_certificate_contract; redundant prose must be explicitly nonnormative.
+    severity: P2_THIRD_CLOSURE_RECHECK
     status: repair_implemented_reaudit_pending
+    resolution_v0_5: Removed primitive_rules/kernel_certificate_kinds/occurrence_path_grammar/proof_node_grammar/dag_invariants/certificate_serialization/trusted_kernel_invariant
+      from active rules.yaml. Lewis-operation source metadata contains labels/provenance plus contract_kind links
+      only.
+  M0-FP03:
+    category: validation
+    title: Whole certificate-contract fingerprint
+    requirement: Freeze validation fingerprints the complete canonical certificate contract so any unreviewed semantic
+      mutation fails unless the lock itself is deliberately changed, which is documented as requiring focused re-audit.
+    severity: P2_THIRD_CLOSURE_RECHECK
+    status: repair_implemented_reaudit_pending
+    resolution_v0_5: audit/m0/certificate_contract_lock.yaml stores SHA-256 of canonical_certificate_contract.
 summary:
   policy: computed_by_validate_source_register
-  closure_note: closed = independently closed by the prior closure recheck; repair_implemented_reaudit_pending = M0.4
-    repair exists but awaits the next independent exact-SHA recheck.
-candidate_state: second_closure_repair_implemented_reaudit_pending
+  closure_note: The second closure report found no P0/P1 and one freeze-integrity P2. Only M0-V02/M0-V03/M0-FP03 remain
+    repair_implemented_reaudit_pending in the M0.5 candidate.
+candidate_state: third_closure_repair_implemented_reaudit_pending

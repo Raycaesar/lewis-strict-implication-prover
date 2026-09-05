@@ -3,62 +3,41 @@
 Native syntactic proof infrastructure for C. I. Lewis's strict-implication
 systems S1–S5.
 
-> **Search may be modern; every accepted theorem must reduce to a certificate
-> licensed by the selected normalized Lewis basis.**
-
 ## Current status
 
-**M0.4 second-closure-audit candidate.**
+**M0.5 narrow P2 closure candidate.**
 
-The first closure recheck confirmed the formula/system layer and closed the
-definition-conversion, schema-instantiation/Sa, occurrence-path, and primitive
-S5 basis issues. M0.4 closes the remaining certificate-serialization,
-bridge-direction, provenance, and freeze-gate defects.
-
-M1 implementation is still forbidden until an independent exact-SHA recheck
-returns:
+The second Work Max closure recheck found:
 
 ```text
-M0 FOUNDATIONAL SPECIFICATION CERTIFIED
+P0: none
+P1: none
+P2: one freeze-integrity defect
 ```
 
-## Active specification
+M0.5 repairs only that P2. The formula/definition ASTs and normalized bases are
+unchanged.
 
-- `docs/FOUNDATIONAL_SPEC_v0.4.md`
-- `docs/PROOF_CERTIFICATE_SPEC.md`
-- `spec/language.yaml`
-- `spec/rules.yaml`
-- `spec/schemas.yaml`
-- `spec/systems.yaml`
+## Single certificate authority
 
-## Normalized bases
-
-| System | Basis ID | Primitive schemas |
-| --- | --- | --- |
-| S1 | `S1_B1_B7` | B1–B7 |
-| S2 | `S2_B1_B8` | B1–B8 |
-| S3 | `S3_B1_B7_A8` | B1–B7 + A8 |
-| S4 | `S4_B1_B7_C10` | B1–B7 + C10 |
-| S5 primary | `S5_PRIMARY_B1_B7_C11` | B1–B7 + C11 |
-| S5 alternative | `S5_ALT_B1_B7_C10_C12` | B1–B7 + C10 + C12 |
-
-## Trusted certificate kinds
-
-Exactly:
+The sole machine-readable certificate contract is:
 
 ```text
-postulate_instance
-Sa
-Sb
-Ad
-Smp
-definition_conversion
+spec/rules.yaml#canonical_certificate_contract
 ```
 
-Certificate objects are closed-world. Unknown logical fields are rejected.
-Node IDs and references are nonempty strings resolved by exact string identity.
+Former duplicate semantic mirrors have been removed. Human certificate
+documentation is explicitly nonnormative.
 
 ## Validation
+
+Prefer:
+
+```bash
+bash scripts/run_m0_checks.sh
+```
+
+or, with the project virtual environment activated:
 
 ```bash
 python scripts/validate_spec.py
@@ -66,4 +45,12 @@ python scripts/validate_source_register.py
 python scripts/validate_spec.py --freeze
 python scripts/validate_source_register.py --freeze
 pytest
+```
+
+## M1 gate
+
+M1 must not begin until the exact M0.5 candidate receives:
+
+```text
+M0 FOUNDATIONAL SPECIFICATION CERTIFIED
 ```
