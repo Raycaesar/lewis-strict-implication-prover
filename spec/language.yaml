@@ -1,7 +1,7 @@
 spec_version: '0.6'
 component: language
 project: lewis-strict-implication-prover
-status: candidate_m0
+status: frozen_m0
 source_policy:
   canonical_historical_source: Lewis & Langford, Symbolic Logic (1932), Chapter VI and Appendix II
   notation_policy: Use the disambiguated notation of the Shen-Yuting manuscript rather than reproducing every typographical

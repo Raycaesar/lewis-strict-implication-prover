@@ -291,10 +291,11 @@ obligations:
     requirement: Every trusted certificate object and justification kind has an exact allowed-field set; unknown fields
       are rejected; proof/node/reference IDs use nonempty strings with exact string identity.
     severity: P1_SECOND_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_4: spec/rules.yaml now defines closed-world top-level/node/justification serialization, exact allowed
       fields, unknown-field rejection, and nonempty-string ID/reference semantics.
-    closure_evidence: M0_FOUNDATIONAL_SECOND_CLOSURE_RECHECK_2026-09-05 confirmed substantive closure.
+    closure_evidence: audit/m0/M0_FOUNDATIONAL_M0_6_DUPLICATE_KEY_CLOSURE_RECHECK_2026-09-05.md certified the exact
+      M0.6 candidate and confirmed final closure.
     reopened_by: M0_FOUNDATIONAL_P2_CLOSURE_RECHECK_2026-09-05
     resolution_v0_6: Restores duplicate mapping-key rejection inside the sole canonical certificate contract and defines
       a strict document-decoding boundary before logical checking.
@@ -373,28 +374,33 @@ obligations:
     requirement: M0 must admit exactly one trusted serialized certificate format and require recursive duplicate object-member
       rejection before construction of the logical certificate mapping.
     severity: P1_M0_5_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_6: canonical_certificate_contract.document_boundary fixes UTF-8 RFC 8259 JSON object input, recursive
       duplicate-name rejection before map construction, strict UTF-8, rejection of nonstandard NaN/Infinity constants,
       and logical validation only after successful strict decoding.
+    closure_evidence: audit/m0/M0_FOUNDATIONAL_M0_6_DUPLICATE_KEY_CLOSURE_RECHECK_2026-09-05.md certified the exact
+      M0.6 candidate and confirmed final closure.
   M0-V04:
     category: validation
     title: Duplicate certificate-key freeze and decoder conformance coverage
     requirement: Freeze validation must require the canonical duplicate-key policy and tests must reject duplicate
       root, nested justification, and nested formula members at the document decoder boundary.
     severity: P2_M0_5_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_6: validate_spec.py asserts the exact canonical document_boundary; test_certificate_document_boundary.py
       mutates that canonical policy and exercises recursive duplicate-key rejection end-to-end.
+    closure_evidence: audit/m0/M0_FOUNDATIONAL_M0_6_DUPLICATE_KEY_CLOSURE_RECHECK_2026-09-05.md certified the exact
+      M0.6 candidate and confirmed final closure.
   M0-FP04:
     category: validation
     title: M0.6 whole-contract lock after serialization-boundary restoration
     requirement: Recompute and freeze-check the whole canonical certificate contract after restoring the lost rule.
     severity: P2_M0_5_CLOSURE_RECHECK
-    status: repair_implemented_reaudit_pending
+    status: closed
     resolution_v0_6: certificate_contract_lock v0.2 fingerprints contract v1.1 with repair parent 5436a3d2....
+    closure_evidence: audit/m0/M0_FOUNDATIONAL_M0_6_DUPLICATE_KEY_CLOSURE_RECHECK_2026-09-05.md certified the exact
+      M0.6 candidate and confirmed final closure.
 summary:
   policy: computed_by_validate_source_register
-  closure_note: The M0.5 single-authority/fingerprint repairs are closed by the 2026-09-05 P2 recheck. Only M0-C05,
-    M0-C06, M0-V04 and M0-FP04 remain re-audit-pending in M0.6.
-candidate_state: duplicate_key_boundary_repair_only_reaudit_pending
+  closure_note: M0 is frozen. The exact-SHA M0.6 certification closed M0-C05, M0-C06, M0-V04, and M0-FP04.
+candidate_state: frozen_m0

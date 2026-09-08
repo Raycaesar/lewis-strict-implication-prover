@@ -1,7 +1,7 @@
 # Lewis S1–S5 Native Syntactic Prover
 ## Foundational specification v0.6
 
-**Status:** narrow certificate-document-boundary closure candidate  
+**Status:** frozen M0 foundational specification
 **Logical layer:** unchanged from the already-audited M0.4/M0.5 candidates.
 
 ## 1. M0.5 audit result and M0.6 scope
@@ -180,8 +180,6 @@ policy to an accepting behavior.
 
 ## 10. M1 gate
 
-M1 remains forbidden until an exact-SHA narrow closure recheck returns:
-
-```text
-M0 FOUNDATIONAL SPECIFICATION CERTIFIED
-```
+The exact-SHA narrow closure recheck returned
+`M0 FOUNDATIONAL SPECIFICATION CERTIFIED`. M0 is frozen and M1 trusted-kernel
+implementation may begin.
