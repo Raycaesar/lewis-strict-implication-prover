@@ -1,0 +1,337 @@
+{
+  "proof_id": "m1-regression-Sb",
+  "system": "S1",
+  "basis_id": "S1_B1_B7",
+  "goal": {
+    "op": "strict_imp",
+    "left": {
+      "op": "and",
+      "left": {
+        "op": "atom",
+        "name": "q"
+      },
+      "right": {
+        "op": "atom",
+        "name": "p"
+      }
+    },
+    "right": {
+      "op": "and",
+      "left": {
+        "op": "and",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "atom",
+          "name": "q"
+        }
+      },
+      "right": {
+        "op": "and",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "atom",
+          "name": "q"
+        }
+      }
+    }
+  },
+  "root": "root",
+  "nodes": {
+    "forward": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B1",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "p"
+          },
+          "Q": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      }
+    },
+    "reverse": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B1",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "q"
+          },
+          "Q": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      }
+    },
+    "mutual": {
+      "conclusion": {
+        "op": "and",
+        "left": {
+          "op": "strict_imp",
+          "left": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "q"
+            },
+            "right": {
+              "op": "atom",
+              "name": "p"
+            }
+          }
+        },
+        "right": {
+          "op": "strict_imp",
+          "left": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "q"
+            },
+            "right": {
+              "op": "atom",
+              "name": "p"
+            }
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "Ad",
+        "parents": [
+          "forward",
+          "reverse"
+        ]
+      }
+    },
+    "equivalence": {
+      "conclusion": {
+        "op": "equiv_s",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      },
+      "justification": {
+        "kind": "definition_conversion",
+        "parents": [
+          "mutual"
+        ],
+        "definition_id": "DEF_EQUIV_S",
+        "direction": "contract",
+        "occurrence_path": []
+      }
+    },
+    "target": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B3",
+        "schema_substitution": {
+          "P": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          }
+        }
+      }
+    },
+    "root": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "Sb",
+        "parents": [
+          "equivalence",
+          "target"
+        ],
+        "direction": "left_to_right",
+        "occurrence_path": [
+          "left"
+        ]
+      }
+    }
+  }
+}

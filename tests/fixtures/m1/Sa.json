@@ -1,0 +1,117 @@
+{
+  "proof_id": "m1-regression-Sa",
+  "system": "S1",
+  "basis_id": "S1_B1_B7",
+  "goal": {
+    "op": "strict_imp",
+    "left": {
+      "op": "and",
+      "left": {
+        "op": "atom",
+        "name": "q"
+      },
+      "right": {
+        "op": "atom",
+        "name": "r"
+      }
+    },
+    "right": {
+      "op": "and",
+      "left": {
+        "op": "atom",
+        "name": "r"
+      },
+      "right": {
+        "op": "atom",
+        "name": "q"
+      }
+    }
+  },
+  "root": "root",
+  "nodes": {
+    "source": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B1",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "p"
+          },
+          "Q": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      }
+    },
+    "root": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "r"
+          }
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "r"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      },
+      "justification": {
+        "kind": "Sa",
+        "parents": [
+          "source"
+        ],
+        "atom_substitution": {
+          "p": {
+            "op": "atom",
+            "name": "q"
+          },
+          "q": {
+            "op": "atom",
+            "name": "r"
+          }
+        }
+      }
+    }
+  }
+}
