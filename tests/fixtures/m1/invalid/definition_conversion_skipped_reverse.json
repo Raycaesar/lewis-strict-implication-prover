@@ -1,0 +1,128 @@
+{
+  "proof_id": "m1-p0-skipped-reverse-implication",
+  "system": "S1",
+  "basis_id": "S1_B1_B7",
+  "root": "root",
+  "goal": {
+    "op": "equiv_s",
+    "left": {
+      "op": "atom",
+      "name": "p"
+    },
+    "right": {
+      "op": "neg",
+      "arg": {
+        "op": "neg",
+        "arg": {
+          "op": "atom",
+          "name": "p"
+        }
+      }
+    }
+  },
+  "nodes": {
+    "forward": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "neg",
+          "arg": {
+            "op": "neg",
+            "arg": {
+              "op": "atom",
+              "name": "p"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B5",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      }
+    },
+    "mutual": {
+      "conclusion": {
+        "op": "and",
+        "left": {
+          "op": "strict_imp",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "neg",
+            "arg": {
+              "op": "neg",
+              "arg": {
+                "op": "atom",
+                "name": "p"
+              }
+            }
+          }
+        },
+        "right": {
+          "op": "strict_imp",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "neg",
+            "arg": {
+              "op": "neg",
+              "arg": {
+                "op": "atom",
+                "name": "p"
+              }
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "Ad",
+        "parents": [
+          "forward",
+          "forward"
+        ]
+      }
+    },
+    "root": {
+      "conclusion": {
+        "op": "equiv_s",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "neg",
+          "arg": {
+            "op": "neg",
+            "arg": {
+              "op": "atom",
+              "name": "p"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "definition_conversion",
+        "parents": [
+          "mutual"
+        ],
+        "definition_id": "DEF_EQUIV_S",
+        "direction": "contract",
+        "occurrence_path": []
+      }
+    }
+  }
+}

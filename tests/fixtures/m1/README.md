@@ -33,6 +33,21 @@ internal error). `--help` returns its help text in the JSON detail and exits 2,
 so no invocation can signal acceptance merely by requesting help.
 There is no `prove` command.
 
+## M1 audit-repair negative fixtures
+
+`invalid/definition_conversion_skipped_reverse.json` contains a valid B5
+instance adjoined to itself, followed by an invalid `DEF_EQUIV_S` contraction:
+the second implication is not the required reverse implication. With the
+ordinary frozen spec the CLI rejects this at definition conversion (exit 1).
+The audited M1 loader falsely admitted it after a temporary spec changed
+`formula_ast.and.fields` to `[left]`. The repaired loader rejects that spec
+before certificate reading or theorem checking (exit 2).
+
+`invalid/duplicate_members.json` rejects at the strict JSON document boundary
+(exit 1). Run `python scripts/run_m1_cli_smoke.py` to check all six positive
+fixtures, both negative fixtures, and the P0 temporary-spec mutation through
+the production CLI.
+
 ## Reproducing validation and coverage
 
 ```bash

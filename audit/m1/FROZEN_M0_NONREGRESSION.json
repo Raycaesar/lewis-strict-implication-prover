@@ -1,0 +1,116 @@
+{
+  "identities": {
+    "certified_m0": "21117f3da827f873c3ed88b578a1681aabfca7ac",
+    "administrative_freeze": "33e6a14a4b92534ea159868060576d1b45da9bb5",
+    "failed_m1_before_repair": "e0837632aa9e187ccbc5a6fcc1a3a8816e17fe56",
+    "m1_replay": "d87f1145da766f4ccbb7a9f9b76e9d15328d50da"
+  },
+  "administrative_files_only": [
+    "AGENTS.md",
+    "PACKAGE_MANIFEST.txt",
+    "README.md",
+    "audit/m0/FREEZE_CHECKLIST.md",
+    "audit/m0/M0_FOUNDATIONAL_M0_6_DUPLICATE_KEY_CLOSURE_RECHECK_2026-09-05.md",
+    "audit/m0/foundational_obligations.yaml",
+    "audit/m0/source_register.yaml",
+    "docs/ARCHITECTURE.md",
+    "docs/FOUNDATIONAL_SPEC_v0.6.md",
+    "docs/ROADMAP.md",
+    "spec/language.yaml",
+    "spec/rules.yaml",
+    "spec/schemas.yaml",
+    "spec/systems.yaml"
+  ],
+  "replay_tree_equals_failed_m1": "2f26744cb63d50a23a218c545ffedc6f83652ef3",
+  "input_file_sha256": {
+    "spec/language.yaml": {
+      "certified_m0": "5696b04210863eef815474c6954a4f8e78a3b316cb12b8e539588fec9c1737c8",
+      "administrative_freeze": "716b244cc3b6ca35a5459c0b47c11d8680ebd4f1451d30bb8dc2076fa1aed47e",
+      "failed_m1_before_repair": "716b244cc3b6ca35a5459c0b47c11d8680ebd4f1451d30bb8dc2076fa1aed47e",
+      "m1_replay": "716b244cc3b6ca35a5459c0b47c11d8680ebd4f1451d30bb8dc2076fa1aed47e",
+      "current": "716b244cc3b6ca35a5459c0b47c11d8680ebd4f1451d30bb8dc2076fa1aed47e"
+    },
+    "spec/rules.yaml": {
+      "certified_m0": "c92a0d9d0efd11aae920cc84d03618728942a5d31ce6cd8abce1f5595ed70948",
+      "administrative_freeze": "35eedb8177ce330f6827b05e9f1d33e30e1a6ec8412a461ea1690c385b9a5e23",
+      "failed_m1_before_repair": "35eedb8177ce330f6827b05e9f1d33e30e1a6ec8412a461ea1690c385b9a5e23",
+      "m1_replay": "35eedb8177ce330f6827b05e9f1d33e30e1a6ec8412a461ea1690c385b9a5e23",
+      "current": "35eedb8177ce330f6827b05e9f1d33e30e1a6ec8412a461ea1690c385b9a5e23"
+    },
+    "spec/schemas.yaml": {
+      "certified_m0": "7a9cd1f0f0548ef0914c682c1d12739c8561de0a7da52a1bd850d6e3a724431a",
+      "administrative_freeze": "d7c3fcd5d581f8390345b95cacea9bc8a21a4beaa435919b089c252eab084df3",
+      "failed_m1_before_repair": "d7c3fcd5d581f8390345b95cacea9bc8a21a4beaa435919b089c252eab084df3",
+      "m1_replay": "d7c3fcd5d581f8390345b95cacea9bc8a21a4beaa435919b089c252eab084df3",
+      "current": "d7c3fcd5d581f8390345b95cacea9bc8a21a4beaa435919b089c252eab084df3"
+    },
+    "spec/systems.yaml": {
+      "certified_m0": "58bcfe343a343bdab9b82ce8853f6391badf7185aa8851e0224acbe77cbd3e61",
+      "administrative_freeze": "84d76ff732dabf24195257fccdb95437392eef21f530a9e852222774b237f2d1",
+      "failed_m1_before_repair": "84d76ff732dabf24195257fccdb95437392eef21f530a9e852222774b237f2d1",
+      "m1_replay": "84d76ff732dabf24195257fccdb95437392eef21f530a9e852222774b237f2d1",
+      "current": "84d76ff732dabf24195257fccdb95437392eef21f530a9e852222774b237f2d1"
+    },
+    "audit/m0/certified_ast_fingerprints.yaml": {
+      "certified_m0": "7e7b124a0abc6bdad238d1393196872b9330fc4637e86b80b1a2ec1f32e85b45",
+      "administrative_freeze": "7e7b124a0abc6bdad238d1393196872b9330fc4637e86b80b1a2ec1f32e85b45",
+      "failed_m1_before_repair": "7e7b124a0abc6bdad238d1393196872b9330fc4637e86b80b1a2ec1f32e85b45",
+      "m1_replay": "7e7b124a0abc6bdad238d1393196872b9330fc4637e86b80b1a2ec1f32e85b45",
+      "current": "7e7b124a0abc6bdad238d1393196872b9330fc4637e86b80b1a2ec1f32e85b45"
+    },
+    "audit/m0/certificate_contract_lock.yaml": {
+      "certified_m0": "5a2885f9665132617d77659c4c497f4b99872e05b2088d6d5ab6bcd556a0e4ba",
+      "administrative_freeze": "5a2885f9665132617d77659c4c497f4b99872e05b2088d6d5ab6bcd556a0e4ba",
+      "failed_m1_before_repair": "5a2885f9665132617d77659c4c497f4b99872e05b2088d6d5ab6bcd556a0e4ba",
+      "m1_replay": "5a2885f9665132617d77659c4c497f4b99872e05b2088d6d5ab6bcd556a0e4ba",
+      "current": "5a2885f9665132617d77659c4c497f4b99872e05b2088d6d5ab6bcd556a0e4ba"
+    }
+  },
+  "parsed_objects_equal_at": [
+    "certified_m0",
+    "administrative_freeze",
+    "failed_m1_before_repair",
+    "m1_replay",
+    "current"
+  ],
+  "parsed_object_count": 36,
+  "parsed_object_sha256": {
+    "S5.bridge_obligations": "2e99947a279705a456fc4c4a9c1ea790e4a62ef98b2e0f6bac1717a4758bd726",
+    "audit/m0/certificate_contract_lock.yaml": "1ea5a56a2a1ecba85c8453cbd5f55af7eb15e32396f9157c85bc36e623939b25",
+    "audit/m0/certified_ast_fingerprints.yaml": "90d44f404d2dec2407efc4a928777ebc2f080bd7049e1724da706980c39fad3a",
+    "basis.S1.normalized_basis": "055f0ae912687aa61768b0e77753dee8aba11d5e38dbd2c4bccae168a10bb192",
+    "basis.S2.normalized_basis": "2588a4d9882f65c73b994fc23b9b8edc566fade0f1e8caebb62e8db86571bab0",
+    "basis.S3.normalized_basis": "268cd6e4154a0017baa0a13e3ac4771b789037c83859f7d92a5110ce5e6fd81d",
+    "basis.S4.normalized_basis": "900f91871d16548d67f5dbf11c65a82307bc2d9e5da032ae283fc3b2d04450e8",
+    "basis.S5.alternative_normalized_basis": "a01ca0057a7e66686038d46b3134fff705cccd7915774b89397694895079d55e",
+    "basis.S5.primary_normalized_basis": "b1f328a95c95f9d749dcb587f2cbafec3e44674ec41f4d69afdec90cf97b781e",
+    "canonical_certificate_contract": "c43e0ba61a2f2429c1a7f6f78c3c2e139b7ad4205ec99fadabc7a29766780316",
+    "definition.DEF_EQUIV_S": "987188f3a75732729d0db2d39a3fc1ea1edaca3ad1aed5ebf051a319d5a7ffde",
+    "definition.DEF_OR": "9d742a9f20dac313a68341c3920a545872b76e3f89a19ee864786265627d86fd",
+    "definition.DEF_STRICT_IMP": "032d792b9a2086aeff72a31fddb9cdb46372a8736a77f74a673c982a7f73dab9",
+    "formula_ast.and": "5728a127c41f1779e9d00f5f9ca621b8ac2d608ebcb3ea51c1560cc210f3994f",
+    "formula_ast.atom": "b72c14529ecd28c86d789b714761fce6b3267f5891901cd77448aad1ef5706a5",
+    "formula_ast.equiv_s": "a756590d95a5d07eaa38799c3c335a5cd561824c5edad219f3a61bf3cf600fd0",
+    "formula_ast.neg": "14c72367fb8b958020776890cad33f00665ff22b41563c44b145aefd78444a6a",
+    "formula_ast.or": "da776a18171c5f376abbf0fe83afb0c6f68792cefcb3d2c12c68a871df4efde5",
+    "formula_ast.poss": "14c72367fb8b958020776890cad33f00665ff22b41563c44b145aefd78444a6a",
+    "formula_ast.strict_imp": "aabc37c26ba7a9689839b1c15f1d794ef3c0b84ded8b024507fbc97eb9b64cb1",
+    "schema.A8": "b8b8b4d3d8bc72c392ae12549312ff38551bce7f62becf2048e1472615e278b0",
+    "schema.B1": "edaef093111f3b2815172dc87f459e2acd2f7cacc915d3a6031bbcf37be3f571",
+    "schema.B2": "87e4fe8e7f863a2b1bbe8ee76b9f6685f4030afd163ade3147d73d0011cb4150",
+    "schema.B3": "f8bbda9f8d9454e303e89efd9baecb3b37e1d837d24414963dfa8d1952e3887b",
+    "schema.B4": "47d477c6a4f394753560bdd49cd0f4e49c5c0d028b6f3486dc8bd92209d34889",
+    "schema.B5": "5e36b15d871d392b931a534b4ebebb9cc1cc716a66320a9dfab6e377b3e33dcc",
+    "schema.B6": "fdbe06021d214e3366bbed966afd667c05b6898d6a4a00dec530d0dccba433d9",
+    "schema.B7": "514216ed4d768d00da4a7d68b6a68486b3160dbc527504e50c8ea68b72c29c38",
+    "schema.B8": "35afdf5d4523de2e082d35db7e212589e1074ddf15148a5f272fad248196d5b4",
+    "schema.C10": "cc046ce197f31616e732c539e27d37b2a11219b1c0cbf5e22e0421662da89351",
+    "schema.C11": "4ae191d3bff9fa0f3052a677210defbc3ca541fa78d6dca97b222970c7c06de3",
+    "schema.C12": "94781108221ce708ee7a5a859c646184dbb1aff90d765610a81b791f4499ea5a",
+    "spec/language.yaml#excluding_root_status": "f6376ea5f3ec86ee61e66264dc99c0c11da46cb64fc87992919b4a301945dab7",
+    "spec/rules.yaml#excluding_root_status": "5ac266d1b73f592edb9c060ca07c3f20a5e0a5bfb96b883f9467933e7ea5fb93",
+    "spec/schemas.yaml#excluding_root_status": "a8cf34b1e143a2059a62f000ed8a53384ff67956bfd7a48df3e86d20aac3f905",
+    "spec/systems.yaml#excluding_root_status": "91caeb5e668b2d62fbb2f8f4c61534ba5f1566acbe4bd3e027a1aa609a00a140"
+  },
+  "comparison_policy": "Complete parsed spec documents differ only in root status between certified candidate and administrative freeze; all other protected objects equal. Six raw input files equal from freeze through current repair."
+}

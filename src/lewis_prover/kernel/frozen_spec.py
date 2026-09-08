@@ -14,10 +14,12 @@ from lewis_prover.errors import (
     FrozenSpecBasisError,
     FrozenSpecFingerprintError,
     FrozenSpecFormatError,
+    FrozenSpecIntegrityError,
     FrozenSpecStatusError,
     FrozenSpecVersionError,
 )
 
+from .frozen_baseline import ADMINISTRATIVE_FREEZE_COMMIT, FROZEN_INPUT_SHA256
 from .model import FrozenBasis, FrozenSpec, deep_freeze
 
 PROJECT = "lewis-strict-implication-prover"
@@ -79,11 +81,33 @@ def _construct_unique_mapping(loader: _UniqueKeyLoader, node: yaml.MappingNode, 
 _UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)
 
 
-def _load_yaml_mapping(path: Path) -> Mapping[str, Any]:
+def _read_frozen_inputs(root: Path) -> dict[str, bytes]:
+    """Read each manifest input once; validation and parsing share these bytes."""
+    inputs = {}
+    for relative_path in FROZEN_INPUT_SHA256:
+        path = root / relative_path
+        try:
+            inputs[relative_path] = path.read_bytes()
+        except OSError as exc:
+            raise FrozenSpecFormatError(f"cannot read frozen YAML file {path}: {exc}") from exc
+    return inputs
+
+
+def _validate_baseline(inputs: Mapping[str, bytes]) -> None:
+    for path, expected in FROZEN_INPUT_SHA256.items():
+        actual = hashlib.sha256(inputs[path]).hexdigest()
+        if actual != expected:
+            raise FrozenSpecIntegrityError(
+                f"frozen baseline SHA-256 mismatch: {path}; "
+                f"expected {expected} from {ADMINISTRATIVE_FREEZE_COMMIT}, got {actual}"
+            )
+
+
+def _load_yaml_mapping(data: bytes, path: Path) -> Mapping[str, Any]:
     try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as exc:
-        raise FrozenSpecFormatError(f"cannot read frozen YAML file {path}: {exc}") from exc
+        text = data.decode("utf-8", errors="strict")
+    except UnicodeError as exc:
+        raise FrozenSpecFormatError(f"cannot decode frozen YAML file {path}: {exc}") from exc
     try:
         value = yaml.load(text, Loader=_UniqueKeyLoader)
     except yaml.YAMLError as exc:
@@ -215,12 +239,12 @@ def _resolve_schemas(
     return frozenset(result)
 
 
-def _validate_bases(systems_document: Mapping[str, Any]) -> Mapping[str, FrozenBasis]:
+def _validate_bases(systems_document: Mapping[str, Any]) -> None:
+    """Validate parsed input only; construct no trusted basis before integrity."""
     systems = _require_mapping(systems_document.get("systems"), "systems.systems", FrozenSpecBasisError)
     if frozenset(systems) != _SYSTEM_IDS:
         raise FrozenSpecBasisError("frozen system ID set mismatch")
 
-    loaded: dict[str, FrozenBasis] = {}
     for expected_basis_id, (system_id, expected_schemas, alternative) in _EXPECTED_BASES.items():
         block = _basis_block(systems, system_id, alternative)
         actual_basis_id = block.get("basis_id")
@@ -234,17 +258,10 @@ def _validate_bases(systems_document: Mapping[str, Any]) -> Mapping[str, FrozenB
         rules = block.get("rules")
         if rules != list(_RULE_IDS):
             raise FrozenSpecBasisError(f"{expected_basis_id} rule set/order mismatch")
-        loaded[expected_basis_id] = FrozenBasis(
-            system_id=system_id,
-            basis_id=expected_basis_id,
-            schemas=resolved,
-            rules=tuple(rules),
-            alternative=alternative,
-        )
 
     primary_id = "S5_PRIMARY_B1_B7_C11"
     alternative_id = "S5_ALT_B1_B7_C10_C12"
-    if primary_id == alternative_id or loaded[primary_id].schemas == loaded[alternative_id].schemas:
+    if primary_id == alternative_id or _resolve_schemas(systems, "S5") == _resolve_schemas(systems, "S5", True):
         raise FrozenSpecBasisError("S5 primary and alternative bases must remain distinct")
 
     s5 = _require_mapping(systems["S5"], "systems.S5", FrozenSpecBasisError)
@@ -266,7 +283,21 @@ def _validate_bases(systems_document: Mapping[str, Any]) -> Mapping[str, FrozenB
     }
     if certificate_policy.get("system_basis_ids") != expected_ids:
         raise FrozenSpecBasisError("certificate system/basis ID registry mismatch")
-    return loaded
+
+
+def _build_bases(systems_document: Mapping[str, Any]) -> Mapping[str, FrozenBasis]:
+    """Construct trusted values only after all six input blobs authenticate."""
+    systems = systems_document["systems"]
+    return {
+        basis_id: FrozenBasis(
+            system_id=system_id,
+            basis_id=basis_id,
+            schemas=_resolve_schemas(systems, system_id, alternative),
+            rules=tuple(_basis_block(systems, system_id, alternative)["rules"]),
+            alternative=alternative,
+        )
+        for basis_id, (system_id, _, alternative) in _EXPECTED_BASES.items()
+    }
 
 
 def load_frozen_spec(repository_root: str | Path = ".") -> FrozenSpec:
@@ -274,21 +305,31 @@ def load_frozen_spec(repository_root: str | Path = ".") -> FrozenSpec:
 
     ``repository_root`` must contain the frozen ``spec`` and ``audit/m0``
     directories. Every validation failure raises a typed ``FrozenSpecError``
-    subclass before any structure is returned.
+    subclass before any trusted structure is constructed. Existing semantic
+    checks retain their specific diagnostics; complete raw-file integrity is
+    an additional mandatory gate, not a replacement for those checks. Parsing
+    and integrity checks use the same single-read byte snapshots. No Git or
+    caller-supplied manifest is consulted at runtime.
     """
 
     root = Path(repository_root).resolve()
+    inputs = _read_frozen_inputs(root)
     documents = {
-        component: _load_yaml_mapping(root / "spec" / f"{component}.yaml")
+        component: _load_yaml_mapping(inputs[f"spec/{component}.yaml"], root / "spec" / f"{component}.yaml")
         for component in _COMPONENTS
     }
     _validate_component_metadata(documents)
 
-    ast_lock = _load_yaml_mapping(root / "audit" / "m0" / "certified_ast_fingerprints.yaml")
-    contract_lock = _load_yaml_mapping(root / "audit" / "m0" / "certificate_contract_lock.yaml")
+    ast_lock_path = "audit/m0/certified_ast_fingerprints.yaml"
+    contract_lock_path = "audit/m0/certificate_contract_lock.yaml"
+    ast_lock = _load_yaml_mapping(inputs[ast_lock_path], root / ast_lock_path)
+    contract_lock = _load_yaml_mapping(inputs[contract_lock_path], root / contract_lock_path)
     _validate_ast_lock(documents["language"], documents["schemas"], ast_lock)
     _validate_contract(documents["rules"], contract_lock)
-    bases = _validate_bases(documents["systems"])
+    _validate_bases(documents["systems"])
+    _validate_baseline(inputs)
+
+    bases = _build_bases(documents["systems"])
 
     frozen_language = deep_freeze(documents["language"])
     frozen_rules = deep_freeze(documents["rules"])

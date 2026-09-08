@@ -17,6 +17,10 @@ class FrozenSpecFingerprintError(FrozenSpecError):
     """A certified schema or definition fingerprint does not match."""
 
 
+class FrozenSpecIntegrityError(FrozenSpecError):
+    """A complete M0 input file differs from the administrative freeze blob."""
+
+
 class FrozenContractError(FrozenSpecError):
     """The canonical certificate contract or its lock does not match."""
 
