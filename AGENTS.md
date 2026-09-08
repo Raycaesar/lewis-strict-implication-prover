@@ -2,8 +2,8 @@
 
 ## Current milestone
 
-M0.6 is a narrow certificate-document-boundary closure candidate. Do not implement M1 until
-an exact-SHA independent recheck certifies M0.
+M0.6 is frozen at the certified foundational specification. M1 implementation may begin without
+changing the frozen M0 logical or certificate contract.
 
 ## Machine-readable authorities
 

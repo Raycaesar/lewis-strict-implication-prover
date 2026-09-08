@@ -18,9 +18,13 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = []
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
 python_files = ["test_*.py"]
+pythonpath = ["src"]

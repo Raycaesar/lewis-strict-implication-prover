@@ -1,0 +1,155 @@
+{
+  "proof_id": "m1-regression-Ad",
+  "system": "S1",
+  "basis_id": "S1_B1_B7",
+  "goal": {
+    "op": "and",
+    "left": {
+      "op": "strict_imp",
+      "left": {
+        "op": "atom",
+        "name": "p"
+      },
+      "right": {
+        "op": "and",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "atom",
+          "name": "p"
+        }
+      }
+    },
+    "right": {
+      "op": "strict_imp",
+      "left": {
+        "op": "atom",
+        "name": "q"
+      },
+      "right": {
+        "op": "and",
+        "left": {
+          "op": "atom",
+          "name": "q"
+        },
+        "right": {
+          "op": "atom",
+          "name": "q"
+        }
+      }
+    }
+  },
+  "root": "root",
+  "nodes": {
+    "left": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "atom",
+          "name": "p"
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B3",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "p"
+          }
+        }
+      }
+    },
+    "right": {
+      "conclusion": {
+        "op": "strict_imp",
+        "left": {
+          "op": "atom",
+          "name": "q"
+        },
+        "right": {
+          "op": "and",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      },
+      "justification": {
+        "kind": "postulate_instance",
+        "schema_id": "B3",
+        "schema_substitution": {
+          "P": {
+            "op": "atom",
+            "name": "q"
+          }
+        }
+      }
+    },
+    "root": {
+      "conclusion": {
+        "op": "and",
+        "left": {
+          "op": "strict_imp",
+          "left": {
+            "op": "atom",
+            "name": "p"
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "p"
+            },
+            "right": {
+              "op": "atom",
+              "name": "p"
+            }
+          }
+        },
+        "right": {
+          "op": "strict_imp",
+          "left": {
+            "op": "atom",
+            "name": "q"
+          },
+          "right": {
+            "op": "and",
+            "left": {
+              "op": "atom",
+              "name": "q"
+            },
+            "right": {
+              "op": "atom",
+              "name": "q"
+            }
+          }
+        }
+      },
+      "justification": {
+        "kind": "Ad",
+        "parents": [
+          "left",
+          "right"
+        ]
+      }
+    }
+  }
+}

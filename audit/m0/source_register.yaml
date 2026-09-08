@@ -1,7 +1,7 @@
 register_version: '0.6'
 project: lewis-strict-implication-prover
 stage: M0
-status: candidate_source_audit
+status: frozen_source_audit
 canonical_source:
   id: LL1932
   author: C. I. Lewis and C. H. Langford
@@ -449,7 +449,7 @@ certificate_contract:
   duplicate_machine_readable_semantics_allowed: false
   human_documentation_status: nonnormative_rendering_of_canonical_contract
   candidate_lock: audit/m0/certificate_contract_lock.yaml
-  status: repair_implemented_reaudit_pending
+  status: closed
   canonical_document_boundary:
     serialized_format: utf8_json_rfc8259_object
     duplicate_mapping_keys_policy: reject_before_mapping_construction

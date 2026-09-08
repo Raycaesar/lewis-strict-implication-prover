@@ -1,7 +1,7 @@
 spec_version: '0.6'
 component: rules
 project: lewis-strict-implication-prover
-status: candidate_m0
+status: frozen_m0
 scope:
   theorem_mode_only: true
   assumptions_supported_in_m0: false

@@ -5,24 +5,12 @@ systems S1–S5.
 
 ## Current status
 
-**M0.6 narrow certificate-document-boundary closure candidate.**
+**M0.6 foundational specification frozen.**
 
-The latest Work Max recheck of the M0.5 candidate found:
-
-```text
-P0: none
-P1: one certificate-document boundary regression
-P2: one dependent freeze/accounting defect
-```
-
-The exact defect was narrow: M0.5 correctly created one machine-readable
-certificate authority, but while deleting the old duplicate registry it failed
-to migrate the already accepted rule that duplicate serialized mapping/object
-keys must be rejected before logical checking.
-
-M0.6 restores that rule **inside the existing sole authority** and adds a
-canonical document-decoding boundary plus direct document-level rejection
-tests.
+Work Max certified exact commit
+`21117f3da827f873c3ed88b578a1681aabfca7ac` with the verdict
+`M0 FOUNDATIONAL SPECIFICATION CERTIFIED`. The administrative freeze is now
+recorded, and M1 trusted-kernel implementation may begin.
 
 The formula/definition ASTs, normalized S1–S5 bases, and S5 bridge orientation
 are unchanged.
@@ -79,8 +67,5 @@ python -m pytest
 
 ## M1 gate
 
-M1 must not begin until an exact-SHA M0.6 closure recheck returns:
-
-```text
-M0 FOUNDATIONAL SPECIFICATION CERTIFIED
-```
+The M1 gate is open following exact-SHA certification and this administrative
+frozen-status transition.

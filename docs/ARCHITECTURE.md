@@ -1,5 +1,5 @@
 # Architecture
-## M0.6 duplicate-key boundary closure candidate
+## M0.6 frozen foundational architecture
 
 ## 1. Trust layering
 

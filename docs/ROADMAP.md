@@ -8,7 +8,7 @@ Search may use sophisticated modern algorithms, but every accepted proof must co
 
 # M0 — Specification normalization
 
-Current stage: **M0.6 duplicate-key boundary closure candidate**.
+Current stage: **M0.6 frozen**. M1 trusted-kernel implementation may begin.
 
 ### Deliverables
 
@@ -21,10 +21,10 @@ Current stage: **M0.6 duplicate-key boundary closure candidate**.
 - [x] first direct source pass against L&L Appendix II and Chapter VI
 - [x] structural consistency check between all four YAML files
 - [x] source-register referential-integrity validator
-- [ ] exact audit of strict-equivalence definition/status
-- [ ] exact audit of definition expansion/contraction policy
-- [ ] close all M0 blockers in `audit/m0/foundational_obligations.yaml`
-- [ ] independent Work Max foundational audit
+- [x] exact audit of strict-equivalence definition/status
+- [x] exact audit of definition expansion/contraction policy
+- [x] close all M0 blockers in `audit/m0/foundational_obligations.yaml`
+- [x] independent Work Max foundational audit
 
 ### Exit criterion
 
@@ -210,4 +210,4 @@ Remove duplicate certificate-semantics mirrors, make `canonical_certificate_cont
 
 # M0.6 — duplicate-key boundary restoration
 
-Restores the duplicate mapping/object-key rejection invariant lost during the M0.5 single-authority migration, defines the canonical strict JSON decoding boundary, adds document-level conformance fixtures, and reopens the closed-world serialization obligation pending one narrow exact-SHA recheck. No formula, definition, basis, or S5 bridge change.
+Restored the duplicate mapping/object-key rejection invariant lost during the M0.5 single-authority migration, defined the canonical strict JSON decoding boundary, and added document-level conformance fixtures. The exact-SHA recheck certified M0.6; the specification is frozen. No formula, definition, basis, or S5 bridge changed.
