@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import fields, replace
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -27,6 +28,11 @@ FROZEN_STATUS = "frozen_m0"
 FROZEN_SPEC_VERSION = "0.6"
 
 _COMPONENTS = ("language", "rules", "schemas", "systems")
+
+# Populated only after the existing six-file authentication and semantic gates.
+# This is a snapshot of the YAML authority, not another semantics registry or
+# a marker stored on caller objects. All descendants are owned and immutable.
+_AUTHORITY: FrozenSpec | None = None
 _SCHEMA_IDS = frozenset(
     {"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "A8", "C10", "C11", "C12"}
 )
@@ -310,8 +316,12 @@ def load_frozen_spec(repository_root: str | Path = ".") -> FrozenSpec:
     an additional mandatory gate, not a replacement for those checks. Parsing
     and integrity checks use the same single-read byte snapshots. No Git or
     caller-supplied manifest is consulted at runtime.
+
+    Each call authenticates every file, even when the immutable semantic
+    snapshot has already been initialized by a previous successful load.
     """
 
+    global _AUTHORITY
     root = Path(repository_root).resolve()
     inputs = _read_frozen_inputs(root)
     documents = {
@@ -329,20 +339,104 @@ def load_frozen_spec(repository_root: str | Path = ".") -> FrozenSpec:
     _validate_bases(documents["systems"])
     _validate_baseline(inputs)
 
-    bases = _build_bases(documents["systems"])
+    if _AUTHORITY is None:
+        bases = _build_bases(documents["systems"])
+        frozen_rules = deep_freeze(documents["rules"])
+        _AUTHORITY = FrozenSpec(
+            repository_root=root,
+            spec_version=FROZEN_SPEC_VERSION,
+            language=deep_freeze(documents["language"]),
+            rules=frozen_rules,
+            schemas=deep_freeze(documents["schemas"]),
+            systems=deep_freeze(documents["systems"]),
+            canonical_certificate_contract=frozen_rules["canonical_certificate_contract"],
+            bases=deep_freeze(bases),
+        )
+    # Preserve the loader's location metadata while sharing only authenticated,
+    # recursively immutable semantics. The checks above must never be cached.
+    return replace(_AUTHORITY, repository_root=root)
 
-    frozen_language = deep_freeze(documents["language"])
-    frozen_rules = deep_freeze(documents["rules"])
-    frozen_schemas = deep_freeze(documents["schemas"])
-    frozen_systems = deep_freeze(documents["systems"])
 
-    return FrozenSpec(
-        repository_root=root,
-        spec_version=FROZEN_SPEC_VERSION,
-        language=frozen_language,
-        rules=frozen_rules,
-        schemas=frozen_schemas,
-        systems=frozen_systems,
-        canonical_certificate_contract=frozen_rules["canonical_certificate_contract"],
-        bases=deep_freeze(bases),
-    )
+def _require_frozen_value(value: Any, authority: Any, path: str) -> None:
+    """Compare data to an owned immutable reference, without caller equality.
+
+    Containers are inspected structurally. Only exact builtin scalar types
+    can reach scalar equality, so e.g. True/1 and custom __eq__ methods cannot
+    impersonate declarations. No caller value is returned for trusted use.
+    """
+    if value is authority:
+        return  # Identity of the actual immutable authority, never its class.
+
+    def mismatch() -> None:
+        raise FrozenSpecIntegrityError(f"supplied FrozenSpec differs from frozen M0 at {path}")
+
+    if isinstance(authority, Mapping):
+        if not isinstance(value, Mapping):
+            mismatch()
+        entries = tuple(value.items())
+        if any(type(key) is not str for key, _ in entries):
+            mismatch()
+        snapshot = dict(entries)
+        if len(snapshot) != len(entries) or snapshot.keys() != authority.keys():
+            mismatch()
+        for key, expected in authority.items():
+            _require_frozen_value(snapshot[key], expected, f"{path}.{key}")
+    elif type(authority) is tuple:
+        if type(value) not in (list, tuple):
+            mismatch()
+        snapshot = tuple(value)
+        if len(snapshot) != len(authority):
+            mismatch()
+        for index, (actual, expected) in enumerate(zip(snapshot, authority)):
+            _require_frozen_value(actual, expected, f"{path}[{index}]")
+    elif type(authority) is frozenset:
+        # The only sets in the loaded authority are basis schema-name sets.
+        if type(value) not in (set, frozenset):
+            mismatch()
+        snapshot = frozenset(value)
+        if any(type(item) is not str for item in snapshot) or snapshot != authority:
+            mismatch()
+    elif type(authority) is FrozenBasis:
+        if type(value) is not FrozenBasis:
+            mismatch()
+        for field in fields(FrozenBasis):
+            _require_frozen_value(getattr(value, field.name), getattr(authority, field.name), f"{path}.{field.name}")
+    elif type(value) is not type(authority) or value != authority:
+        mismatch()
+
+
+def validate_frozen_spec(frozen_spec: FrozenSpec) -> FrozenSpec:
+    """Authenticate a Python specification and return the owned M0 snapshot.
+
+    Direct construction, replacement, copying, and shallow mapping proxies
+    confer no trust. Every field except location-only ``repository_root`` is
+    compared to the authority initialized by the full frozen-file loader,
+    including the separately exposed contract and every derived basis field.
+    If needed, the supplied root locates files for that loader; it cannot
+    supply a manifest or authorize a semantic difference.
+
+    Equivalent mutable representations are allowed, but are never retained or
+    cached as trusted. All consumers must use this function's return value:
+    the recursively immutable, loader-owned authority, not caller mappings.
+    The returned root identifies the authority's original load location.
+    """
+    if type(frozen_spec) is not FrozenSpec:
+        raise FrozenSpecIntegrityError("trusted specification input must be FrozenSpec data matching frozen M0")
+    authority = _AUTHORITY
+    if authority is None:
+        # Ordinary direct construction may be the process's first API call.
+        # Complete-file authentication remains mandatory in that case too.
+        load_frozen_spec(frozen_spec.repository_root)
+        authority = _AUTHORITY
+    assert authority is not None
+    try:
+        for field in fields(FrozenSpec):
+            if field.name != "repository_root":
+                _require_frozen_value(
+                    getattr(frozen_spec, field.name), getattr(authority, field.name), field.name,
+                )
+    except (AttributeError, KeyError, TypeError, ValueError, RuntimeError) as exc:
+        if isinstance(exc, FrozenSpecIntegrityError):
+            raise
+        raise FrozenSpecIntegrityError("cannot validate supplied FrozenSpec data against frozen M0") from exc
+    return authority

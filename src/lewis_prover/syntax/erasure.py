@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from lewis_prover.errors import FormulaErasureError
+from lewis_prover.kernel.frozen_spec import validate_frozen_spec
 from lewis_prover.kernel.model import FrozenSpec
 
 from .formula import And, Atom, EquivS, Formula, Neg, Or, Poss, StrictImp, formula_from_ast, formula_to_ast
@@ -65,6 +66,7 @@ def diagnostic_full_erasure(formula: Formula, frozen_spec: FrozenSpec) -> Formul
     equality, hashing, substitution, or any rule-checking path.
     """
 
+    frozen_spec = validate_frozen_spec(frozen_spec)
     if isinstance(formula, Atom):
         return formula
     if isinstance(formula, Neg):

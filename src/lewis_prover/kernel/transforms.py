@@ -1,6 +1,8 @@
 """Trusted structural operations over exact surface formulas.
 
-All registries come from a ``FrozenSpec`` returned by ``load_frozen_spec``.
+Every public operation authenticates its supplied spec and uses only the
+loader-owned immutable M0 snapshot. Underscore helpers are internal routines;
+their patterns/environments must be obtained inside these validated calls.
 These operations return formulas/environments, never accepted proof steps.
 They neither check theorem provenance or basis admission nor invoke logical
 rules or diagnostic erasure. Defined nodes remain first-class surface nodes.
@@ -17,6 +19,7 @@ from lewis_prover.errors import (
 )
 from lewis_prover.syntax.formula import And, Atom, EquivS, Formula, Neg, Or, Poss, StrictImp
 
+from .frozen_spec import validate_frozen_spec
 from .model import FrozenSpec
 
 # Constructor adapters only; no schema, definition, or path semantics live here.
@@ -119,6 +122,7 @@ def _match(
 
 def schema_metavariables(schema_id: str, frozen_spec: FrozenSpec) -> frozenset[str]:
     """Return schema holes only; object atom names are a separate namespace."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     return _metavariables(_schema(schema_id, frozen_spec, SchemaInstantiationError))
 
 
@@ -126,6 +130,7 @@ def instantiate_schema(
     schema_id: str, substitution: Mapping[str, Formula], frozen_spec: FrozenSpec,
 ) -> Formula:
     """Instantiate a registered schema with exactly its metavariable domain."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     pattern = _schema(schema_id, frozen_spec, SchemaInstantiationError)
     environment = _environment(substitution, frozen_spec, SchemaInstantiationError)
     required = _metavariables(pattern)
@@ -137,6 +142,7 @@ def instantiate_schema(
 
 def match_schema(schema_id: str, formula: Formula, frozen_spec: FrozenSpec) -> Mapping[str, Formula]:
     """Match a registered schema once; return an immutable shared environment."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     pattern = _schema(schema_id, frozen_spec, SchemaMatchError)
     _check_formula(formula, frozen_spec, SchemaMatchError)
     environment: dict[str, Formula] = {}
@@ -146,6 +152,7 @@ def match_schema(schema_id: str, formula: Formula, frozen_spec: FrozenSpec) -> M
 
 def object_atom_names(formula: Formula, frozen_spec: FrozenSpec) -> frozenset[str]:
     """Collect names from object atoms, including atoms under defined nodes."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     _check_formula(formula, frozen_spec, AtomSubstitutionError)
     names: set[str] = set()
     seen: set[int] = set()
@@ -170,6 +177,7 @@ def substitute_atoms(
     The source is only a formula here; its status as an established theorem is
     the later checker's responsibility. Replacement values are never revisited.
     """
+    frozen_spec = validate_frozen_spec(frozen_spec)
     atoms = object_atom_names(source, frozen_spec)
     environment = _environment(substitution, frozen_spec, AtomSubstitutionError)
     if not environment or environment.keys() - atoms:
@@ -210,6 +218,7 @@ def _locate(
 
 def resolve_occurrence(source: Formula, path: OccurrencePath, frozen_spec: FrozenSpec) -> Formula:
     """Select exactly one surface subtree without expanding any definitions."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     _check_formula(source, frozen_spec, OccurrencePathError)
     selected, _ = _locate(source, _path(path, frozen_spec), frozen_spec)
     return selected
@@ -219,6 +228,7 @@ def replace_occurrence(
     source: Formula, path: OccurrencePath, replacement: Formula, frozen_spec: FrozenSpec,
 ) -> Formula:
     """Rebuild only ancestors of one selected occurrence, even with shared nodes."""
+    frozen_spec = validate_frozen_spec(frozen_spec)
     _check_formula(source, frozen_spec, OccurrencePathError)
     _check_formula(replacement, frozen_spec, OccurrencePathError)
     _, ancestors = _locate(source, _path(path, frozen_spec), frozen_spec)
@@ -239,6 +249,7 @@ def convert_definition(
     output side is instantiated once, including any defined surface nodes it
     contains. No nested conversion, Sb operation, or rule acceptance occurs.
     """
+    frozen_spec = validate_frozen_spec(frozen_spec)
     registry = frozen_spec.language["metadefinitions"]
     if not isinstance(definition_id, str) or definition_id not in registry:
         raise DefinitionConversionError(f"unknown registered definition: {definition_id!r}")

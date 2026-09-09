@@ -1,6 +1,6 @@
 """Small trusted-kernel initialization surface."""
 
-from .frozen_spec import load_frozen_spec
+from .frozen_spec import load_frozen_spec, validate_frozen_spec
 from .model import FrozenBasis, FrozenSpec
 from .basis import validate_basis
 from .certificate import certificate_from_document, load_certificate
@@ -17,7 +17,7 @@ from .checker import NodeChecker
 from .dag import CheckedCertificate, check_certificate, linearize
 
 __all__ = [
-    "FrozenBasis", "FrozenSpec", "load_frozen_spec", "validate_basis",
+    "FrozenBasis", "FrozenSpec", "load_frozen_spec", "validate_frozen_spec", "validate_basis",
     "ProofCertificate", "ProofNode", "Justification",
     "PostulateInstance", "Sa", "Sb", "Ad", "Smp", "DefinitionConversion",
     "decode_certificate_document", "certificate_from_document", "load_certificate",

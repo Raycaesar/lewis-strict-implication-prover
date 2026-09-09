@@ -1,4 +1,9 @@
-"""Immutable values exposed by the frozen-spec loader."""
+"""Specification data builders; construction alone does not establish trust.
+
+The file loader creates recursively immutable values from authenticated YAML.
+Caller construction may contain mutable descendants. Every trusted API uses
+validate_frozen_spec and consumes only its owned immutable authority snapshot.
+"""
 
 from __future__ import annotations
 
@@ -22,7 +27,10 @@ def deep_freeze(value: Any) -> Any:
 
 @dataclass(frozen=True, slots=True)
 class FrozenBasis:
-    """One exact normalized basis admitted by the frozen M0 specification."""
+    """Basis data, authenticated only through the owning spec's validation.
+
+    No trusted checking API accepts a standalone caller-constructed basis.
+    """
 
     system_id: str
     basis_id: str
@@ -33,7 +41,11 @@ class FrozenBasis:
 
 @dataclass(frozen=True, slots=True)
 class FrozenSpec:
-    """Validated, deeply immutable view of the frozen M0 authorities."""
+    """Specification data; this shallow frozen dataclass is not authentication.
+
+    load_frozen_spec supplies immutable M0 data. Trusted consumers also check
+    arbitrary constructed/reconstructed values through validate_frozen_spec.
+    """
 
     repository_root: Path
     spec_version: str

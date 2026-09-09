@@ -22,6 +22,7 @@ from .basis import validate_basis
 from .certificate_model import (
     Ad, DefinitionConversion, PostulateInstance, ProofCertificate, ProofNode, Sa, Sb, Smp,
 )
+from .frozen_spec import validate_frozen_spec
 from .model import FrozenSpec
 from .transforms import (
     convert_definition, instantiate_schema, replace_occurrence, resolve_occurrence, substitute_atoms,
@@ -31,8 +32,9 @@ from .transforms import (
 class NodeChecker:
     """Check individual nodes in a structurally loaded ``ProofCertificate``.
 
-    ``frozen_spec`` must come from ``load_frozen_spec``. For serialized input,
-    use ``load_certificate`` first. Direct data builders are rechecked for the
+    The supplied spec is authenticated before this session stores the owned
+    immutable M0 snapshot. For serialized input, use ``load_certificate``
+    first. Direct data builders are rechecked for the
     node/formula/parent constraints required here; they confer no acceptance.
     Successful checks return exact surface conclusions and update only this
     session's private ledger. A failed check never adds a node to that ledger.
@@ -41,6 +43,7 @@ class NodeChecker:
     __slots__ = ("_certificate", "_spec", "_accepted")
 
     def __init__(self, certificate: ProofCertificate, frozen_spec: FrozenSpec):
+        frozen_spec = validate_frozen_spec(frozen_spec)
         if type(certificate) is not ProofCertificate:
             raise CertificateStructureError("NodeChecker requires a structural ProofCertificate")
         self._certificate = certificate
@@ -54,6 +57,7 @@ class NodeChecker:
 
     def check_node(self, node_id: str) -> Formula:
         """Accept one supported node only after exact surface validation."""
+        self._spec = validate_frozen_spec(self._spec)
         if not isinstance(node_id, str) or not node_id:
             raise NodeCheckError(node_id, "<unknown>", "NODE_ID", "node ID must be a nonempty string")
         if node_id not in self._certificate.nodes:

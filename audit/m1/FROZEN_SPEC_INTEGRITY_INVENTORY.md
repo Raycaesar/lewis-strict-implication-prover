@@ -1,5 +1,53 @@
 # M1 frozen-spec integrity inventory
 
+## Second-repair Python entry-point inventory
+
+Inspected before implementation against failed first closure candidate
+`b5d543db60ed7631f9e182f137ce2f83156d2ec3`. The file-loader boundary below
+was closed; its protection did **not** extend to caller-constructed models.
+This table records the missing checks and the required second-repair boundary.
+
+| Entry point | Accepted spec/basis input | Trusted acceptance-sensitive? | Validation at b5d543 | Required validation |
+| --- | --- | --- | --- | --- |
+| `load_frozen_spec` | Root containing the six frozen files | Yes, authority initialization | Complete file manifest plus metadata, AST/contract locks and normalized-basis checks | Retain every gate before constructing the immutable authority; do not skip file validation on subsequent loads |
+| `validate_frozen_spec` (new) | `FrozenSpec`, including reconstructed fields and `bases: Mapping[str, FrozenBasis]` | Yes, common boundary | Absent | Compare all semantic fields and every derived basis field to the authenticated authority; return only the authority's immutable snapshot |
+| `check_certificate` | Serialized certificate and `FrozenSpec` | Yes, whole-proof acceptance | Passed supplied spec directly to loading and checking | Validate spec before certificate work; use returned snapshot throughout |
+| `load_certificate` | Serialized certificate and `FrozenSpec` | Yes, trusted structural loading; no theorem acceptance | Strict JSON decoder, then unchecked spec-dependent structure loading | Validate spec before decode/structure; preserve strict JSON behavior |
+| `certificate_from_document` | Decoded document and `FrozenSpec` | Yes, spec-dependent model construction; no serialized/theorem acceptance | Document value checks; unchecked contract and derived basis | Validate spec before reading the contract or resolving a basis |
+| `NodeChecker.__init__` | Structural certificate and `FrozenSpec` | Yes, incremental acceptance session | Certificate class check; stored caller spec | Validate spec and retain only the authority snapshot |
+| `NodeChecker.check_node` | Node ID; session-held spec/basis-dependent state | Yes, incremental acceptance | Used stored spec, unchecked contract and basis mapping | Ensure the stored spec passes the same boundary before any node work; all parents use that fixed authority |
+| `validate_basis` | System/basis ID and `FrozenSpec.bases` | Yes, primitive admission | Checked ID pair only, trusted caller-derived basis contents | Authenticate entire spec and derived table, then return the authority's exact basis |
+| `schema_metavariables`, `instantiate_schema`, `match_schema` | Schema ID, formulas/environment, `FrozenSpec` | Yes, supported trusted transforms | Used caller schema ASTs and constructor fields | Validate at each public entry; private matching/instantiation use only the returned snapshot |
+| `object_atom_names`, `substitute_atoms` | Formulas/environment and `FrozenSpec` | Yes, Sa-dependent transforms | Used caller occurrence traversal contract | Validate at each public entry before traversal |
+| `resolve_occurrence`, `replace_occurrence` | Formulas/path and `FrozenSpec` | Yes, Sb/conversion-dependent transforms | Used caller path grammar and traversal contract | Validate at each public entry before traversal |
+| `convert_definition` | Formula, definition ID, direction/path, `FrozenSpec` | Yes, definition conversion | Used caller definitions, constructor fields and contract | Validate before definition lookup, matching or instantiation |
+| Private transform helpers `_children`, `_check_formula`, `_schema`, `_environment`, `_instantiate`, `_match`, `_path`, `_locate` | Snapshot plus derived patterns/environments | Yes, internally | Relied on the unenforced public loader precondition | Explicit internal-only helpers; every supported caller validates first; no public API accepts externally prepared pattern/constructor state |
+| `FrozenSpec`, `FrozenBasis`, `deep_freeze` | Caller data and nested containers | Data builders only | Dataclass freezing was shallow; documentation implied authentication | Explicitly confer no trust; no checking API consumes a standalone basis; all derived fields are validated through the owning spec |
+| `diagnostic_full_erasure` / private `_expand_root` | Formula and `FrozenSpec` | No, diagnostic only; never called by checking | Unchecked definition links | Apply the common spec boundary for consistent public behavior; remains diagnostic only |
+| `decode_certificate_document`, formula/parser/pretty APIs, certificate models, `linearize`, renderer, CLI | No direct spec/basis input (CLI obtains spec through loader) | Decoder and fixed formula structure are trusted; rendering is not acceptance | Fixed JSON/formula rules; CLI uses authenticated loader | No new semantic input boundary; preserve these APIs and CLI flow |
+
+The comparison covers complete `language`, `rules`, `schemas`, `systems`, the
+separately exposed `canonical_certificate_contract`, `spec_version`, and the
+complete derived `bases` table. Only `repository_root` is location metadata;
+it cannot authenticate data. List/tuple and set/frozenset representations may
+be equivalent, but scalar types, mapping domains, sequence order, every basis
+ID/membership/rule/alternative flag and all definition links must agree.
+No boolean, provenance text, copied digest or validation marker grants trust.
+
+Implemented in `kernel.frozen_spec.validate_frozen_spec`. Every entry above
+uses its return value: the recursively immutable snapshot initialized only
+after the unchanged complete-file loader gates pass. The validator compares
+all data structurally, including exact scalar types and every `FrozenBasis`
+field, and never retains a caller's mappings. The reference consists only of
+the existing authenticated YAML and its derived bases; no second semantic
+registry was added. Subsequent explicit file loads still authenticate every
+input even when the in-memory authority is initialized. New tests cover all
+15 public spec-using entry points (including the validator and diagnostic
+erasure), the incremental session's retained state, and every semantic
+component; 299 API cases and the 69 published file-mutation classes pass.
+
+## First-repair file-loader inventory (historical scope)
+
 Scope: every specification read in `src/lewis_prover/kernel/**` and
 `src/lewis_prover/syntax/**`, traced from failed M1
 `e0837632aa9e187ccbc5a6fcc1a3a8816e17fe56` (identical replay `d87f114`).
@@ -9,7 +57,9 @@ refer to YAML fields; `contract` abbreviates only
 
 “Before” means integrity validation in the audited loader, not validation by
 the separate M0 scripts. “After” includes the mandatory complete-file SHA-256
-gate in M1. “Acceptance-sensitive” includes inputs used by initialization to
+gate in the first M1 repair's **file loader only**. Caller-created Python
+objects were not covered, as the closure audit subsequently demonstrated.
+“Acceptance-sensitive” includes inputs used by initialization to
 admit/reject a baseline. Fields implemented as fixed Python behavior rather
 than read at runtime are identified separately.
 
@@ -46,10 +96,14 @@ than read at runtime are identified separately.
 Derived `FrozenSpec.bases[*].{system_id,schemas}` are consumed by
 `basis.validate_basis` and `checker.NodeChecker.check_node`; IDs are mapping
 keys. `rules` and `alternative` are authenticated basis metadata. They are
-constructed only after all file identities pass. `FrozenSpec.repository_root`
+constructed by the loader only after all file identities pass. Ordinary
+caller construction had no such gate in b5d543; the new API validator now
+checks every derived field and returns the authority's own basis data.
+`FrozenSpec.repository_root`
 is caller location metadata, not semantics; `spec_version` is the checked M0
 version. `kernel.model`, `certificate_model`, `dag`, and package initializers
-have no further dynamic specification inputs. File reads are confined to
+have no further dynamic specification inputs beyond the Python spec boundary
+inventoried above. File reads are confined to
 `frozen_spec._read_frozen_inputs`.
 
 `syntax.formula` uses fixed constructor classes and exact canonical object

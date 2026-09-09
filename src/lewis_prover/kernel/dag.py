@@ -13,6 +13,7 @@ from lewis_prover.errors import (
 from .certificate import load_certificate
 from .certificate_model import PostulateInstance, ProofCertificate
 from .checker import NodeChecker
+from .frozen_spec import validate_frozen_spec
 from .model import FrozenSpec
 
 
@@ -102,17 +103,19 @@ def _graph_order(certificate: ProofCertificate) -> tuple[str, ...]:
 
 
 def check_certificate(data: bytes | bytearray | str, frozen_spec: FrozenSpec) -> CheckedCertificate:
-    """Check canonical serialized JSON against a load_frozen_spec result.
+    """Check canonical serialized JSON against authenticated frozen M0.
 
     Mappings and model builders are deliberately not trusted-boundary inputs:
     they cannot establish that duplicate JSON names were rejected. The frozen
     loader's own typed errors remain separate from certificate validation.
 
-    Error precedence is decode, closed structure (nodes in code-point order),
+    Spec authentication runs first. Certificate error precedence is decode,
+    closed structure (nodes in code-point order),
     root/reference resolution, cycles, reachability, logical nodes in stable
     topological order, then exact root/goal equality. Decode failures follow
     serialized order; graph/rule diagnostics do not depend on object order.
     """
+    frozen_spec = validate_frozen_spec(frozen_spec)
     try:
         certificate = load_certificate(data, frozen_spec)
     except CertificateDocumentError as exc:

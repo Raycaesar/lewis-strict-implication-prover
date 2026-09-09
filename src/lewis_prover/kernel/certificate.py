@@ -24,6 +24,7 @@ from .certificate_model import (
     ProofNode, Sa, Sb, Smp,
 )
 from .document import decode_certificate_document, validate_decoded_document
+from .frozen_spec import validate_frozen_spec
 from .model import FrozenSpec
 
 
@@ -119,6 +120,7 @@ def certificate_from_document(document: dict[str, Any], frozen_spec: FrozenSpec)
     Call ``load_certificate`` at the trusted bytes/text boundary. Successful
     structure loading leaves all graph/theorem obligations for the checker.
     """
+    frozen_spec = validate_frozen_spec(frozen_spec)
     validate_decoded_document(document)
     contract = frozen_spec.canonical_certificate_contract
     proof = _fields(document, contract["top_level"], "proof")
@@ -153,8 +155,9 @@ def certificate_from_document(document: dict[str, Any], frozen_spec: FrozenSpec)
 def load_certificate(data: bytes | bytearray | str, frozen_spec: FrozenSpec) -> ProofCertificate:
     """Trusted entry point: strict document decode, then structural loading.
 
-    The spec must come from ``load_frozen_spec``. This function does not prove
-    theorem validity and does not resolve or accept proof steps.
+    The spec is authenticated before document work. This function does not
+    prove theorem validity and does not resolve or accept proof steps.
     """
+    frozen_spec = validate_frozen_spec(frozen_spec)
     document = decode_certificate_document(data)
     return certificate_from_document(document, frozen_spec)

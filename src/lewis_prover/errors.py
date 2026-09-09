@@ -18,7 +18,7 @@ class FrozenSpecFingerprintError(FrozenSpecError):
 
 
 class FrozenSpecIntegrityError(FrozenSpecError):
-    """A complete M0 input file differs from the administrative freeze blob."""
+    """A frozen input file or supplied Python spec fails M0 authentication."""
 
 
 class FrozenContractError(FrozenSpecError):

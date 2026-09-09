@@ -1,12 +1,16 @@
 # M1 Trusted Kernel Implementation and Audit Repair Log
 
-Repair verification: 2026-09-09 (Asia/Shanghai; 2026-09-08 UTC).
+First repair verification: 2026-09-09 (Asia/Shanghai; 2026-09-08 UTC).
+Second repair verification: 2026-09-09 (Asia/Shanghai).
 Repository: `Raycaesar/lewis-strict-implication-prover`.
 
-The independent Work Max audit of the failed M1 commit returned
-**M1 TRUSTED KERNEL NOT CERTIFIED**. This document records repairs to its one
-P0 and two P2 findings and the resulting local validation. It does not claim
-M1 certification. M2 and proof search remain unimplemented.
+The independent Work Max closure audit of first repair candidate
+`b5d543db60ed7631f9e182f137ce2f83156d2ec3` returned
+**M1 TRUSTED KERNEL NOT CERTIFIED**. The file-loader P0 and both P2 findings
+were closed, but one P0 remained: public Python checking accepted unvalidated
+specification objects. Sections 1–6 retain the first-repair history, with its
+scope corrected; section 7 records the present Python API repair. Local test
+success does not confer M1 certification. M2 and proof search remain unimplemented.
 
 ## 1. Exact provenance and reconstructed history
 
@@ -17,7 +21,8 @@ M1 certification. M2 and proof search remain unimplemented.
 | Pure administrative M0 freeze, reconstructed locally | `33e6a14a4b92534ea159868060576d1b45da9bb5` |
 | M1 implementation baseline, exact tree replay on that freeze | `d87f1145da766f4ccbb7a9f9b76e9d15328d50da` |
 | Audited failed M1 SHA | `e0837632aa9e187ccbc5a6fcc1a3a8816e17fe56` |
-| Repaired M1 candidate | `PENDING_FINAL_COMMIT` |
+| Failed first closure candidate | `b5d543db60ed7631f9e182f137ce2f83156d2ec3` |
+| Second repair candidate, direct child of b5d543 | `PENDING_FINAL_COMMIT` |
 | Local repair branch | `m1/work-max-audit-repair` |
 
 The repaired-candidate field is pending because this log is included in that
@@ -58,7 +63,8 @@ in that replay commit. The present repair is a separate subsequent commit.
 21117f3  certified M0 candidate
   -> 33e6a14  pure administrative M0 freeze
     -> d87f114  exact M1 implementation replay (known failed baseline)
-      -> PENDING_FINAL_COMMIT  M1 P0/P2 audit repair candidate
+      -> b5d543  first M1 repair (file-loader P0 and both P2 findings closed)
+        -> PENDING_FINAL_COMMIT  second M1 repair (Python API boundary)
 ```
 
 `main`, `origin/main`, and the historical M0 tag are preserved. No push,
@@ -98,7 +104,7 @@ unchecked fields; missing fields can cause constructor failures, also now
 rejected at the loader boundary. No broader false-acceptance claim is inferred
 from those instantiation failures.
 
-### Complete input boundary
+### Complete file-loader input boundary
 
 `src/lewis_prover/kernel/frozen_baseline.py` contains only provenance SHA
 identities and SHA-256 digests of these raw Git blobs at `33e6a14`:
@@ -153,8 +159,11 @@ consume an invalid ancestor accepted through definition conversion, however.
 New tests cover that downstream use through Sb, Sa, Ad, and Smp. Schema
 matching and conversion are directly affected; schema instantiation shares
 the unchecked dependency. Diagnostic erasure reads constructor-definition
-links but is outside certificate acceptance. All these input paths now require
-the complete frozen baseline; no transform semantics were changed.
+links but is outside certificate acceptance. The first repair authenticated
+these fields only on the file-loader path. It did not enforce that invariant
+on directly supplied Python models; the earlier claim of complete input-path
+protection was incorrect. Section 7 records the production API enforcement.
+No transform semantics were changed by either repair.
 
 ## 3. Files changed by this repair (relative to d87f114)
 
@@ -270,8 +279,198 @@ provenance verifier, production CLI smoke checks, `git diff --check`, and
 `git diff --check HEAD^ HEAD`. No remote execution result is claimed: this
 repair was requested as a local branch without pushing.
 
-All requested local repair gates pass. The remaining handoff is independent
-Work Max re-audit of the exact repaired commit; local test success does not
-confer M1 certification. No M2 work was performed.
+All first-repair local gates passed, but the subsequent independent closure
+audit found the Python API P0 described below. The earlier local completion
+statement was not certification or evidence that the complete API boundary
+was protected.
 
-M1 REPAIR COMPLETE — INDEPENDENT RE-AUDIT REQUIRED
+## 7. Second repair: M1-CLOSE-01 Python specification trust boundary
+
+### Audit input, exact root cause, and reproduction
+
+Failed first closure candidate: `b5d543db60ed7631f9e182f137ce2f83156d2ec3`.
+The supplied independent report is preserved in
+[`M1_CLOSURE_REPORT_b5d543_FINAL.md`](M1_CLOSURE_REPORT_b5d543_FINAL.md).
+It was an untracked audit input at the start of this task and is included as
+evidence with this repair. Staging exposed two trailing-space Markdown hard
+breaks; they were converted to equivalent backslash hard breaks to satisfy
+`git diff --check`. All other bytes are unchanged. The original byte-for-byte
+copy is `/tmp/lewis-m1-second-repair-closure-report-original.md`, whose SHA-256
+matches the pre-edit snapshot. Its statements and links concern the previous
+candidate and its audit environment, not certification of the new candidate.
+
+The exact remaining root cause was an unenforced loader-origin precondition.
+Public `FrozenSpec` and `FrozenBasis` constructors are ordinary data builders;
+frozen dataclasses do not authenticate their fields, and their nested values
+can remain caller-owned and mutable. `check_certificate` passed the supplied
+spec through unchanged, `NodeChecker.__init__` retained it, and trusted
+transforms and `validate_basis` read its unchecked constructor/definition/
+contract/basis data. Complete file hashes protected only callers that entered
+through `load_frozen_spec`.
+
+Before changing production code, five new cases failed against b5d543:
+the existing three-node skipped-reverse contraction fixture, a two-node B5
+variant with contraction at its left occurrence, incremental construction
+with the altered spec, B8 admission under S1 through an invented `FrozenBasis`,
+and an existing incremental session whose semantics changed through a retained
+nested dictionary alias. Both serialized conversion variants and the B8
+certificate were falsely accepted; the retained-alias conversion was also
+accepted. Genuine M0 rejected the same invalid conversion/admission claims.
+These tests changed only caller data and did not patch the production loader,
+manifest, private acceptance ledger, or interpreter state.
+
+### One authoritative validation boundary
+
+`kernel.frozen_spec.validate_frozen_spec` now establishes the invariant for
+every supported specification-dependent API and returns the checker-owned
+immutable M0 authority. That authority is initialized only after the existing
+loader has authenticated all six original file blobs and passed every
+metadata, AST fingerprint, contract-lock, and normalized-basis check. It is a
+snapshot of the existing YAML authority, not an independently editable
+semantics registry. No baseline digest or M0 semantic declaration changed.
+
+The comparison includes complete `language`, `rules`, `schemas`, and `systems`
+documents; `spec_version`; the separately exposed canonical contract; and the
+complete derived basis table. This covers all seven constructor declarations,
+12 primitive ASTs, three definition pairs and links, the entire contract and
+occurrence/traversal declarations, all normalized bases and S5 separation,
+and every derived basis's `system_id`, `basis_id`, `schemas`, `rules`, and
+`alternative` field. Missing/extra mapping members and changed sequence order
+reject. Scalar types must agree exactly; Python's `True == 1` coercion and
+caller-defined equality cannot impersonate a declaration. Equivalent ordinary
+list/tuple and set/frozenset representations are permitted.
+
+Only `repository_root` is nonsemantic location metadata. If direct model
+construction is the first API call in a process, that root locates the files
+for the ordinary authenticated loader; it never supplies a trusted manifest.
+After initialization, comparisons use the in-memory authenticated authority.
+Every later explicit `load_frozen_spec` call still rereads and authenticates
+all six files before returning a result. Cached semantics never bypass file
+integrity checks, including when loading a previously valid directory again.
+
+There is no validated flag, provenance token, digest field, or transferable
+validation marker. Reconstructed and copied objects receive content checks.
+Identity shortcuts apply only to actual immutable values in the authenticated
+reference graph. The validator returns that graph and never caches or retains
+a caller's mutable representation as trusted. An altered specification raises
+`FrozenSpecIntegrityError` before certificate/transform acceptance work.
+
+### Protected production entry points and immutability
+
+The before/after input inventory was written before implementation and is in
+[`FROZEN_SPEC_INTEGRITY_INVENTORY.md`](FROZEN_SPEC_INTEGRITY_INVENTORY.md).
+Enforcement is present in `check_certificate`, `load_certificate`,
+`certificate_from_document`, `NodeChecker.__init__`, every `check_node` call,
+`validate_basis`, `schema_metavariables`, `instantiate_schema`, `match_schema`,
+`object_atom_names`, `substitute_atoms`, `resolve_occurrence`,
+`replace_occurrence`, and `convert_definition`. The public diagnostic-only
+`diagnostic_full_erasure` also validates its spec for consistent behavior; it
+remains outside theorem acceptance. `validate_frozen_spec` is exported at both
+the kernel and package surfaces.
+
+Every entry uses the validator's returned snapshot, and incremental sessions
+store only that snapshot. Private underscore transform helpers are explicitly
+internal and receive their patterns/environments only through these validated
+operations. No supported trusted API accepts a standalone `FrozenBasis`, a
+caller-prepared constructor registry, or external transform matching state.
+
+The authority's mappings are `MappingProxyType` over freshly copied
+dictionaries; YAML sequences become tuples. Derived bases are frozen
+dataclasses containing immutable strings, frozensets of schema names, tuples
+of rule names, and booleans. There are no mutable descendants. A caller's
+shallow proxy can retain mutable descendants, but none become checker state.
+Accepted equivalent mutable data is discarded after comparison in favor of
+the authority snapshot. Later alias mutation cannot change an existing
+session, returned basis, or trusted transform; reusing the changed original
+spec for another operation rejects.
+
+### Regression results and preserved behavior
+
+`tests/kernel/test_python_api_boundary.py` adds **299 cases**: every supported
+spec-using API against every top-level semantic component; all constructor
+declarations, ASTs and definition links; every derived basis field; invented
+and mixed bases; all required primitive admission probes; copied and rebuilt
+models; fake markers; nested aliases and mutable basis members/rules; recursive
+immutability; exact scalar types and dishonest equality; and first API calls
+in fresh interpreters. Positive controls exercise every API with loader data
+and equivalent mutable reconstructions, all six justification fixtures as
+complete DAGs and incremental sessions, and all three definitions in both
+directions at root and nested occurrences.
+
+`tests/kernel/test_file_integrity_closure.py` adds **69 cases** repeating the
+mutation classes published in the independent closure report. Each begins
+with a valid loaded temporary copy and then mutates it, so the tests also
+verify that an initialized authority cannot bypass later file checks. These
+are permanent reproductions of the published classes; the independent audit's
+temporary scripts are not required or claimed as reused artifacts. All 69
+reject. All existing 108 first-repair file-integrity tests are retained.
+
+| Exact probe | Second-repair result |
+| --- | --- |
+| Existing skipped-reverse fixture and two-node B5 variant, genuine spec, whole checker | Reject: `invalid_definition_conversion`, node `root`, detail `DEFINITION_CONVERSION` |
+| Same conversion through a caller-constructed spec with `and.fields = [left]` | Reject: `FrozenSpecIntegrityError` before logical checking |
+| Incremental construction with that altered spec | Reject: `FrozenSpecIntegrityError` |
+| Incremental session followed by retained-alias constructor mutation | Reject invalid conversion with `DEFINITION_CONVERSION`; no invalid ledger entry |
+| Direct inconsistent B1 matching / skipped-reverse conversion, genuine spec | Reject: `SchemaMatchError` / `DefinitionConversionError` |
+| Those direct transforms with an altered spec | Reject: `FrozenSpecIntegrityError` |
+| B8 under S1, genuine or semantically identical reconstructed spec | Whole and incremental rejection: `SCHEMA_ADMISSION` |
+| B8 under S1 via forged derived basis or changed mutable basis alias | Forged spec rejects with `FrozenSpecIntegrityError`; existing session still rejects with `SCHEMA_ADMISSION` |
+| A8 under S2; C11 under S5 alternative; C10/C12 under S5 primary | Reject: `SCHEMA_ADMISSION` |
+| B8 under S2; A8 under S3; C10 under S4; C11 under S5 primary; C10/C12 under S5 alternative | Accept exact primitive instance |
+| Genuine loader spec, all existing valid fixtures, complete DAGs and six kinds | Accept |
+| DEF_OR / DEF_STRICT_IMP / DEF_EQUIV_S, expand and contract, root and nested | Preserve exact frozen surface results |
+
+### Full verification and M0 preservation
+
+| Gate | Result |
+| --- | --- |
+| Pre-edit `bash scripts/run_m0_checks.sh` | Four M0 gates pass; **1,095 passed in 9.84s** |
+| Pre-edit frozen baseline/provenance verifier | PASS: six blobs, 36 protected objects, pure freeze, exact replay |
+| Five new P0 regression cases before production repair | All five fail as expected; false acceptance reproduced |
+| Direct Python API regression suite after repair | **299 passed in 0.64s** |
+| Published file-loader mutation matrix | **69 passed in 4.51s**; all mutations reject |
+| Post-repair `bash scripts/run_m0_checks.sh` | All four M0 validation gates pass; complete pytest suite **1,463 passed in 15.17s**, no failures/errors/skips |
+| `scripts/verify_m1_frozen_baseline.py` | PASS; persisted evidence remains exact |
+| `scripts/run_m1_cli_smoke.py` | All nine pass: six valid kinds exit 0, invalid conversion and duplicate JSON exit 1, altered file spec exits 2 |
+| Before/after raw-hash comparison | PASS: all eight frozen-file/manifest/evidence hashes unchanged; original closure report's hash preserved in `/tmp`; committed report differs only by two equivalent Markdown hard-break spellings |
+| Comparison against b5d543 | PASS: all 83 pre-existing files under frozen/admin authorities, original tests/fixtures, foundational docs, and CI scopes remain byte-identical |
+| `git diff --check` and staged `git diff --cached --check` | PASS after normalizing the supplied report's two Markdown hard breaks |
+
+All 1,095 previous tests remain, with **368 new permanent cases**. The
+pre-edit snapshot is `/tmp/lewis-m1-second-repair-before.json`; its raw hashes
+were compared after repair. The unchanged committed
+`FROZEN_M0_NONREGRESSION.json` and verifier independently reproduce all six
+input hashes and 36 protected-object comparisons. All seven constructor
+declarations, 12 schema ASTs, three definition AST pairs, six normalized basis
+blocks, both S5 identities, bridge records, the entire contract, both locks,
+and the frozen manifest digests are unchanged. The contract digest remains
+`c43e0ba61a2f2429c1a7f6f78c3c2e139b7ad4205ec99fadabc7a29766780316`.
+
+### Files changed, CI, and candidate handoff
+
+Relative to b5d543, production changes are confined to:
+`src/lewis_prover/kernel/{frozen_spec,model,basis,certificate,checker,dag,transforms,__init__}.py`,
+`src/lewis_prover/{__init__,errors}.py`, and `src/lewis_prover/syntax/erasure.py`.
+They add spec authentication, snapshot use, and corrected API documentation;
+no logical operation was altered. The two new test files above, this log,
+the updated integrity inventory, and the supplied closure report (two Markdown
+hard-break spellings normalized)
+are the remaining changed/added files.
+
+Both existing workflows and all 29 CI-coverage cases remain unchanged. The
+new files fall within existing `src/lewis_prover/**`, `tests/**`, and
+`audit/m1/**` push/PR filters and are automatically included in complete
+pytest execution. All locally executable CI gates passed. Hosted CI for the
+new SHA has not been run; no push or remote branch update was requested or
+performed in this second repair. The previous candidate's successful hosted
+runs, recorded in the closure report, are not results for the new candidate.
+
+The second repair is one new commit directly on b5d543. The certified M0,
+administrative freeze, exact M1 replay and first-repair commits are preserved;
+no history was reconstructed, squashed, amended or rewritten in this task.
+Final candidate: `PENDING_FINAL_COMMIT` (self-hash cannot be embedded in this
+commit; exact SHA is recorded in final delivery). Independent re-audit remains
+required. No remaining local test failure is known. No M2 work, proof search,
+or M1 certification claim is included.
+
+M1 SECOND REPAIR COMPLETE — INDEPENDENT RE-AUDIT REQUIRED
